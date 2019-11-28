@@ -1,0 +1,26 @@
+{
+  "name": "plugin-widget",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GreyZhou/plugin-widget.git"
+  },
+  "keywords": [
+    "jsx",
+    "jquery",
+    "plugin",
+    "vue",
+    "react"
+  ],
+  "author": "greyzhou",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GreyZhou/plugin-widget/issues"
+  },
+  "homepage": "https://github.com/GreyZhou/plugin-widget#readme"
+}
