@@ -1,0 +1,16 @@
+{
+    "presets": [
+        // ["@babel/preset-env",{
+        //     "targets": {
+        //         "ie": 9
+        //     },
+        //     "useBuiltIns": "usage",
+        //     "modules":false,
+        //     "corejs":3
+        // }]
+    ],
+    "plugins": [
+        // "transform-class-properties",
+        ["transform-react-jsx", { "pragma":"Widget.createElement" }]
+    ]
+}

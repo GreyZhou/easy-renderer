@@ -1,10 +1,13 @@
 {
   "name": "plugin-widget",
   "version": "1.0.0",
-  "description": "",
+  "description": "类 vue 语法，用于 js 插件开发、页面开发的小型库，支持 JSX",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eg": "parcel example/demo/index.html",
+    "dev": "parcel example/demo/index.html",
+    "dist": "parcel build src/index.js"
   },
   "repository": {
     "type": "git",
@@ -22,5 +25,16 @@
   "bugs": {
     "url": "https://github.com/GreyZhou/plugin-widget/issues"
   },
-  "homepage": "https://github.com/GreyZhou/plugin-widget#readme"
+  "homepage": "https://github.com/GreyZhou/plugin-widget#readme",
+  "directories": {
+    "example": "example"
+  },
+  "dependencies": {
+    "parcel-bundler": "^1.12.4"
+  },
+  "devDependencies": {
+    "parcel": "^1.12.4",
+    "parcel-bundler": "^1.12.4",
+    "typescript": "^3.7.2"
+  }
 }
