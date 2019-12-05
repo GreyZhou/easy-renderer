@@ -1,4 +1,18 @@
-import Widget from '/src/widget'
-import app from './src/components/app.tsx'
+import ERer from '/src/ERer'
+import App from './src/components/app.tsx'
 
-Widget.render(app,document.getElementById('root'))
+// class App {
+//     constructor(...arg){
+//         console.log(arg)
+//     }
+
+//     render(){
+//         return <div>999</div>
+//     }
+// }
+ERer.render(
+    <div>
+        <App a={5}>xx</App>
+    </div>,
+    document.getElementById('root')
+)

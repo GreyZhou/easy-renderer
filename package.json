@@ -1,5 +1,5 @@
 {
-  "name": "plugin-widget",
+  "name": "easy-renderer",
   "version": "1.0.0",
   "description": "类 vue 语法，用于 js 插件开发、页面开发的小型库，支持 JSX",
   "main": "index.js",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GreyZhou/plugin-widget.git"
+    "url": "git+https://github.com/GreyZhou/easy-renderer.git"
   },
   "keywords": [
     "jsx",
@@ -23,9 +23,9 @@
   "author": "greyzhou",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/GreyZhou/plugin-widget/issues"
+    "url": "https://github.com/GreyZhou/easy-renderer/issues"
   },
-  "homepage": "https://github.com/GreyZhou/plugin-widget#readme",
+  "homepage": "https://github.com/GreyZhou/easy-renderer#readme",
   "directories": {
     "example": "example"
   },

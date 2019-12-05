@@ -1,10 +1,7 @@
-import widget from './widget/index.ts'
-import widgetDom from './widgetDom/index.ts'
+import ERer from './ERer/index.ts'
+import ERerDom from './ERerDom/index.ts'
 
 export default {
-    ...widget,
-    ...widgetDom,
-    init(){
-        return '669966'
-    }
+    ...ERer,
+    ...ERerDom,
 }

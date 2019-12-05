@@ -11,6 +11,6 @@
     ],
     "plugins": [
         // "transform-class-properties",
-        ["transform-react-jsx", { "pragma":"Widget.createElement" }]
+        ["transform-react-jsx", { "pragma":"ERer.createElement" }]
     ]
 }
