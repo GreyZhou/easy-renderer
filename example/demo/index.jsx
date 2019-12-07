@@ -10,9 +10,14 @@ import App from './src/components/app.tsx'
 //         return <div>999</div>
 //     }
 // }
+
+
 ERer.render(
     <div>
+        999
+        { undefined }
         <App a={5}>xx</App>
+        <div>弟弟</div>
     </div>,
     document.getElementById('root')
 )

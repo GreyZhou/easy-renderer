@@ -1,7 +1,16 @@
-import ERer from './ERer/index.ts'
-import ERerDom from './ERerDom/index.ts'
+import { component } from './ERer/component'
+import { createElement,render,renderWrap } from './ERer/render'
 
-export default {
-    ...ERer,
-    ...ERerDom,
+
+
+
+const ERer =  {
+    createElement,
+    component,
+    render,
+    renderWrap,
 }
+
+window.ERer = ERer
+
+export default ERer
