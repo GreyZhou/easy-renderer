@@ -1,5 +1,7 @@
 import ERer from '/src/ERer'
 import App from './src/components/app.tsx'
+import Todo from './src/components/todolist.tsx'
+import './src/scss/index.scss'
 
 // class App {
 //     constructor(...arg){
@@ -13,11 +15,10 @@ import App from './src/components/app.tsx'
 
 
 ERer.render(
-    <div>
-        999
+    <div className='todo-list-app'>
+        <div className="title">ToDoList</div>
         { undefined }
-        <App a={5}>xx</App>
-        <div>弟弟</div>
+        <Todo></Todo>
     </div>,
     document.getElementById('root')
 )

@@ -1,10 +1,12 @@
 import '../utils/interface'
-import { _renderVnode } from './render'
+import { _renderVnode,renderComponent } from './render'
+import Observer from '../utils/observer'
 
-// 制造组件类的工厂
+// 生成组件类的工厂
 const ERerFactory = function(options:componentOptions){
     let ERerComponent = function(props,children){
         this.$slots = children;
+        this.event = new Observer();
         Object.assign(this,this.data())  // 合并 data 数据
         Object.assign(this,this.methods)  // 合并 method 方法
         this.setProps(props)  // 更新props
@@ -16,9 +18,21 @@ const ERerFactory = function(options:componentOptions){
     ERerComponent.prototype.created = options.created || function(){}  // created 回调
     ERerComponent.prototype.mounted = options.mounted || function(){}  // mounted 回调
     ERerComponent.prototype.render = options.render || function(){}   // 渲染结果
+     // 触发事件
+    ERerComponent.prototype.$emit = function(name:string,...arg){
+        this.event.trigger(name,...arg)
+    }  
     // 更新props
     ERerComponent.prototype.setProps = function( props = {} ){
-        this.props = props;
+        this.props = {}
+        Object.keys(props).forEach(key=>{
+            if(/^\$\w+/.test(key) && typeof props[key] === 'function'){
+                console.log(key)
+                this.event.listen(key.replace('$',''),props[key])
+            }else{
+                this.props[key] = props[key]
+            }
+        })
         if ( !this.$el ) {//第一次渲染
             this.created()
             renderComponent( this );
@@ -45,20 +59,4 @@ export const component = function(name,options:componentOptions){
 // 实例化组件
 export const createComponent = function(componentFunc,props?,children?){
     return new componentFunc(props,children)
-}
-
-// 渲染组件
-export const renderComponent = function( component ){
-    let $el;
-    const vnode = component.render();  // 获取虚拟 dom
-    
-    $el = _renderVnode( vnode );
-    
-    component.preVnodeTree = vnode; // 保存虚拟树，下次比对
-    if(component.$el){
-        let parent = component.$el.parentNode
-        parent.insertBefore($el,component.$el)
-        parent.removeChild(component.$el)
-    }
-    component.$el = $el;  // 真实 dom
 }

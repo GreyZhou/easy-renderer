@@ -20,8 +20,12 @@ export default ERer.component('hello',{
     },
     render(){
         return (<div>
-            <div className="sdf" onclick={()=>this.add()}>{ this.text }</div>
-            { this.value }
+            <div class="text" onclick={()=>this.add()}>
+                <div class="text">
+                    { this.text }
+                    <div class='text'>{ this.value }</div>
+                </div>
+            </div>
         </div>)
     },
     methods:{
