@@ -20,6 +20,7 @@ interface vnode {
 interface patchOptions {
     type: string;
     index?: number;
+    indexCode: string;
     // text?: string
     // newNode?: vnode
     // attrs?:any 

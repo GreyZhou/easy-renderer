@@ -130,11 +130,13 @@ export const setAttrs = function(dom,name,value){
 // 渲染组件
 export const renderComponent = function( component ){
     let $el;
-    const vnode = component.render();  // 获取虚拟 dom    
+    const vnode = component.render();  // 获取虚拟 dom   
+    console.log(vnode)
+    
     if(component.$el){
     
-        console.log('start --------------')
-        console.log(component.preVnodeTree,vnode)
+        // console.log('start --------------')
+        // console.log(component.preVnodeTree,vnode)
         let patches = diff(component.preVnodeTree,vnode)
         console.log(patches)
         $el = patch( component.$el, patches )

@@ -65,7 +65,7 @@ const Todo = ERer.component('todoList',{
 const Item = ERer.component('todoItem',{
     render(){
         let checkClass = this.check?'active':''
-
+        console.log('render todoItem',this.props)
         return <div className={`todo-item ${checkClass}`}>
             <div className={`check-box ${checkClass}`} onclick={()=>this.change()}></div>
             <div className='text'>{ this.props.text }</div>
@@ -83,10 +83,10 @@ const Item = ERer.component('todoItem',{
     methods:{
         change(){
             let val = !this.check
-            this.$emit('change',val)
             this.setState({
                 check:val
             })
+            this.$emit('change',val)
         }
     }
 })
