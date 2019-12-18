@@ -2,6 +2,7 @@ import ERer from '/src/ERer'
 
 const Todo = ERer.component('todoList',{
     render(){
+        console.log('now: todoWrap')
         return <div className="todo-wrap">
             <div className="todo-input">
                 <input 
@@ -32,26 +33,28 @@ const Todo = ERer.component('todoList',{
             finishList:[],
         }
     },
+    
     methods:{
         addItem(){
             let text = this.text;
             this.loadingList.push(text)
+            console.log(this.loadingList)
             this.setState({
                 text:""
             })
         },
         changeItem(finishFlag,index){
-            console.log('changeItem',finishFlag,index)
-            let start = this.loadingList
-            let end = this.finishList 
-            if(!finishFlag){
-                start = this.finishList 
-                end = this.loadingList
-            }
+            // console.log('changeItem',finishFlag,index)
+            // let start = this.loadingList
+            // let end = this.finishList 
             console.log(this.loadingList,this.finishList)
-            console.log(start,end)
-            let item = start.splice(index,1)
-            end.unshift(item[0])
+            if(!finishFlag){
+                let item = this.finishList.splice(index,1)
+                this.loadingList.push(item[0])
+            }else{
+                let item = this.loadingList.splice(index,1)
+                this.finishList.unshift(item[0])
+            }
             this.setState()
         },
         enter(e){
@@ -65,7 +68,7 @@ const Todo = ERer.component('todoList',{
 const Item = ERer.component('todoItem',{
     render(){
         let checkClass = this.check?'active':''
-        console.log('render todoItem',this.props)
+        console.log('now todoItem',this.props)
         return <div className={`todo-item ${checkClass}`}>
             <div className={`check-box ${checkClass}`} onclick={()=>this.change()}></div>
             <div className='text'>{ this.props.text }</div>

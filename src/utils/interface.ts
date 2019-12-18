@@ -21,13 +21,11 @@ interface patchOptions {
     type: string;
     index?: number;
     indexCode: string;
+    content?: any
+    oldContent?: any
     // text?: string
     // newNode?: vnode
     // attrs?:any 
-    content?: any
-    insertType?: string
-    old?: vnode
-    new?: vnode
 }
 // patches 合集
 interface Patches {

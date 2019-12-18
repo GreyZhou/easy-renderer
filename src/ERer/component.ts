@@ -9,6 +9,7 @@ class ERerComponentBase {
     public props:any = {}   // 传参
     public $el:HTMLElement;  // 渲染后的 dom
     private timer:any;   // 定时器
+    private destroyed_flag:boolean; // 已销毁标识
 
     constructor(){
         this.event = new Observer();
@@ -19,10 +20,30 @@ class ERerComponentBase {
     created(){}
     mounted(){}
 
+    // 延迟到一帧渲染
+    delayRender(){
+        if(this.destroyed_flag)return
+        cancelAnimationFrame(this.timer)
+        this.timer = requestAnimationFrame(()=>{
+            if(this.destroyed_flag)return
+            renderComponent( this );
+        })  
+    }
+    unmounted(){
+        this.$el.parentNode.removeChild(this.$el)
+        this.destroyed_flag = true;
+    }
+
     $emit(name:string,...arg){
         this.event.trigger(name,...arg)
     }
     setProps( props = {},children ){
+        if( 
+            JSON.stringify(props) === JSON.stringify(this.props) &&
+            JSON.stringify(children) === JSON.stringify(this.$slots)
+        ){
+            return;
+        }
         this.$slots = children;
         this.props = {}
         console.log('setProps')
@@ -35,18 +56,23 @@ class ERerComponentBase {
             }
         })
         if ( !this.$el ) {//第一次渲染
+            console.log('setProps[first render]')
             this.created()
             renderComponent( this );
             this.mounted();
+            console.log(this.$el)
         }else{
-            renderComponent( this )
+            console.log('setProps[fresh props]')
+            this.delayRender()
+            console.log(this.$el)
         }
     }
     // 更新data
     setState(obj){
-        console.log('setState')
+        console.log('setState ')
         Object.assign(this,obj) // 更新数据
-        renderComponent( this );
+        this.delayRender()
+        console.log(this.$el)
     }
 
 }
@@ -54,6 +80,7 @@ class ERerComponentBase {
 // 生成组件类的工厂
 const ERerFactory = function(options:componentOptions){
     class ERerComponent extends  ERerComponentBase {
+        private name:string = options.name; // 组件名称
         constructor(props,children){
             super()
             Object.assign(this,this.data())  // 合并 data 数据
@@ -74,6 +101,8 @@ const ERerFactory = function(options:componentOptions){
             return options.mounted && options.mounted.call(this);
         }
     }
+
+
     // let ERerComponent = function(props,children){
     //     this.event = new Observer();
     //     Object.assign(this,this.data())  // 合并 data 数据
@@ -133,5 +162,5 @@ export const createComponent = function(componentFunc,props?,children?){
 
 // 判断是否是组件
 export const isComponent = function(vnode:vnode){
-    return typeof vnode.type == 'function'  && vnode.type instanceof ERerComponentBase
+    return typeof vnode.type == 'function'  && vnode.type.prototype instanceof ERerComponentBase
 }

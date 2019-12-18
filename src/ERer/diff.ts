@@ -10,6 +10,7 @@ const diff = function(oldTree:vnode, newTree:vnode):Patches {
     return patches;
 }
 
+let cache;
 // 递归处理
 function walk(oldVnode:vnodeLike, newVnode:vnodeLike, indexCode:string, patches:Patches) {
     let currentPatch:patchOptions[] = [];
@@ -18,8 +19,8 @@ function walk(oldVnode:vnodeLike, newVnode:vnodeLike, indexCode:string, patches:
         currentPatch.push({
             type: DIFF_TYPE.REMOVE,
             indexCode: indexCode,
+            content: oldVnode,
         });
-
     }else if( typeof oldVnode === 'string' && typeof newVnode === 'string' ){  // 文本
         if(oldVnode !== newVnode){
             currentPatch.push({
@@ -29,6 +30,7 @@ function walk(oldVnode:vnodeLike, newVnode:vnodeLike, indexCode:string, patches:
             });
         }
     }else if( !oldVnode && newVnode ){ // 新增
+        // console.log('add------', newVnode)
         currentPatch.push({
             type: DIFF_TYPE.ADD,
             indexCode:indexCode,
@@ -39,32 +41,37 @@ function walk(oldVnode:vnodeLike, newVnode:vnodeLike, indexCode:string, patches:
          currentPatch.push({
             type: DIFF_TYPE.REPLACE,
             indexCode:indexCode,
-            content: newVnode
+            content: newVnode,
+            oldContent: oldVnode,
         });
     }else{   // 节点类型相同
         if( isComponent(oldVnode as vnode) ){
-            let instance = oldVnode.instance;
-            if( instance ){
-                instance.setProps(newVnode.props,newVnode.children)
-            }else{
-                currentPatch.push({
-                    type: DIFF_TYPE.ADD,
-                    indexCode:indexCode,
-                    content: newVnode,
-                })
+            if( newVnode.instance ){
+                console.log('wa！！！！ 新组件有 instance!!!------------------------')
             }
+            let instance = newVnode.instance =  oldVnode.instance;
+            instance.setProps(newVnode.props,newVnode.children)
+                // if( instance ){
+                    // instance.setProps(newVnode.props,newVnode.children)
+            // }else{
+            //     currentPatch.push({
+            //         type: DIFF_TYPE.ADD,
+            //         indexCode:indexCode,
+            //         content: newVnode,
+            //     })
+            // }
         }else{
-              // 比较属性是否有更改
-              let attrs = diffAttr(oldVnode.porps, newVnode.props);
-              if (Object.keys(attrs).length > 0) {
-                  currentPatch.push({
-                      type: DIFF_TYPE.ATTRS,
-                      indexCode:indexCode,
-                      content: attrs
-                  });
-              }
-              // 比较儿子们
-              diffChildren(oldVnode.children,newVnode.children,indexCode,patches);
+            // 比较属性是否有更改
+            let attrs = diffAttr(oldVnode.porps, newVnode.props);
+            if (Object.keys(attrs).length > 0) {
+                currentPatch.push({
+                    type: DIFF_TYPE.ATTRS,
+                    indexCode:indexCode,
+                    content: attrs
+                });
+            }
+            // 比较儿子们
+            diffChildren(oldVnode.children,newVnode.children,indexCode,patches);
         }
     }
 

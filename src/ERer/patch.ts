@@ -1,5 +1,7 @@
 import { _renderVnode } from './render'
 import { DIFF_TYPE } from './const'
+import { isComponent } from './component'
+
 
 const patch = function(dom:HTMLElement,patches:Patches):HTMLElement{
 
@@ -46,11 +48,16 @@ const applyPatches = function( domMap:any = {}, treeCode:string, patchArr:patchO
         let parent_code = treeCode.substr(0,code_len - 1)
         console.log(patch.type,patch.content)
         switch (patch.type) {
-            case DIFF_TYPE.REMOVE:
-                domMap[parent_code].removeChild(dom)
+            case DIFF_TYPE.REMOVE:  // 移除
+                if( isComponent(patch.content) ){
+                    patch.content.instance.unmounted()
+                    delete patch.content.instance
+                }else{
+                    domMap[parent_code].removeChild(dom)
+                }
                 break;
 
-            case DIFF_TYPE.TEXT:
+            case DIFF_TYPE.TEXT:  // 文本替换
                 if (dom.textContent) {
                     dom.textContent = patch.content
                 } else {
@@ -58,15 +65,22 @@ const applyPatches = function( domMap:any = {}, treeCode:string, patchArr:patchO
                 }
                 break;
 
-            case DIFF_TYPE.REPLACE:
-                // parent.replaceChild(_renderVnode(patch.content), dom)
-                break;
-
-            case DIFF_TYPE.ADD:
+            case DIFF_TYPE.REPLACE:  // 节点替换
+                if( isComponent(patch.oldContent) ){
+                    patch.oldContent.instance.unmounted()
+                    delete patch.oldContent.instance
+                }else{
+                    domMap[parent_code].removeChild(dom)
+                }
                 insertDom(domMap[parent_code], _renderVnode(patch.content), self_code)
                 break;
 
-            case DIFF_TYPE.ATTRS:
+            case DIFF_TYPE.ADD:  // 新增
+                // console.log('add--------vnode:', patch.content)
+                insertDom(domMap[parent_code], _renderVnode(patch.content), self_code)
+                break;
+
+            case DIFF_TYPE.ATTRS:  //  属性变化
                 
                 break;
         

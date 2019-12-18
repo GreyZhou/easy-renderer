@@ -131,14 +131,13 @@ export const setAttrs = function(dom,name,value){
 export const renderComponent = function( component ){
     let $el;
     const vnode = component.render();  // 获取虚拟 dom   
-    console.log(vnode)
+    console.log(component.name,vnode,)
     
     if(component.$el){
-    
         // console.log('start --------------')
         // console.log(component.preVnodeTree,vnode)
         let patches = diff(component.preVnodeTree,vnode)
-        console.log(patches)
+        console.log('patches: ',patches)
         $el = patch( component.$el, patches )
 
         if($el !==  component.$el){
@@ -158,7 +157,6 @@ export const renderComponent = function( component ){
 
 // 插入dom
 export const render = function(vnode:vnodeLike,container:HTMLElement,replaceFlag:boolean){
-    console.log(vnode)
     let dom:HTMLElement = _renderVnode(vnode)
     if( replaceFlag ){
         let parent:HTMLElement = container.parentElement;
