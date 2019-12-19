@@ -40,22 +40,25 @@ const Todo = ERer.component('todoList',{
             this.loadingList.push(text)
             console.log(this.loadingList)
             this.setState({
-                text:""
+                text:"",
+                loadingList:[...this.loadingList],
             })
         },
         changeItem(finishFlag,index){
             // console.log('changeItem',finishFlag,index)
             // let start = this.loadingList
             // let end = this.finishList 
-            console.log(this.loadingList,this.finishList)
             if(!finishFlag){
                 let item = this.finishList.splice(index,1)
                 this.loadingList.push(item[0])
             }else{
                 let item = this.loadingList.splice(index,1)
-                this.finishList.unshift(item[0])
+                // this.finishList.unshift(item[0])
             }
-            this.setState()
+            this.setState({
+                loadingList:[...this.loadingList],
+                finishList:[...this.finishList],
+            })
         },
         enter(e){
             if(e.keyCode === 13){

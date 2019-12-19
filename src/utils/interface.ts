@@ -10,19 +10,23 @@ interface componentOptions {
 
 // 虚拟dom 属性
 interface vnode {
-    type:string | Function | HTMLElement // tag 名称或者组件构造函数
+    type:string | Function | null // tag 名称或者组件构造函数
+    key?:number | string   // key
     props?:any        // 属性等配置
     children?:Array<vnodeLike>  // 子元素
     instance?:any  // 组件实例
+    dom?: Node  // dom 引用
+    text?: string  // 文本值
 }
 
 // 单个 patch 描述
 interface patchOptions {
     type: string;
-    index?: number;
     indexCode: string;
-    content?: any
-    oldContent?: any
+    oldVnode: any
+    newVnode?: any
+    index?: number;
+    attrs?:any
     // text?: string
     // newNode?: vnode
     // attrs?:any 

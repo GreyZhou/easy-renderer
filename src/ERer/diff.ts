@@ -3,53 +3,62 @@ import { DIFF_TYPE } from './const'
 import { isComponent } from './component'
 
 // diff 主入口
-const diff = function(oldTree:vnode, newTree:vnode):Patches {
-    let patches:Patches = {};
+const diff = function(oldTree:vnode, newTree:vnode):patchOptions[] {
+    let patches:patchOptions[] = [];
+    console.log(oldTree)
+    console.log(newTree)
     // 递归树， 比较后的结果放到补丁包中
     walk(oldTree, newTree, '0', patches)
     return patches;
 }
 
-let cache;
 // 递归处理
-function walk(oldVnode:vnodeLike, newVnode:vnodeLike, indexCode:string, patches:Patches) {
-    let currentPatch:patchOptions[] = [];
+function walk(oldVnode:vnode, newVnode:vnode, indexCode:string, patches:patchOptions[]) {
+    // let currentPatch:patchOptions[] = [];
+    let currentPatch:patchOptions[] = patches;
 
     if( oldVnode && !newVnode ){  // 移除
         currentPatch.push({
             type: DIFF_TYPE.REMOVE,
             indexCode: indexCode,
-            content: oldVnode,
+            oldVnode: oldVnode,
         });
-    }else if( typeof oldVnode === 'string' && typeof newVnode === 'string' ){  // 文本
-        if(oldVnode !== newVnode){
-            currentPatch.push({
-                type: DIFF_TYPE.TEXT,
-                indexCode:indexCode,
-                content:newVnode
-            });
-        }
-    }else if( !oldVnode && newVnode ){ // 新增
+    }
+    else if( !oldVnode && newVnode ){ // 新增
         // console.log('add------', newVnode)
         currentPatch.push({
             type: DIFF_TYPE.ADD,
             indexCode:indexCode,
-            content: newVnode,
+            oldVnode: oldVnode,
+            newVnode: newVnode,
         })
-    }else if ( oldVnode.type !== newVnode.type ) {  // 节点类型不同
+    }
+    else if( oldVnode.type === 'string' && newVnode.type === 'string' ){  // 文本
+        if(oldVnode.text !== newVnode.text){
+            currentPatch.push({
+                type: DIFF_TYPE.TEXT,
+                indexCode:indexCode,
+                oldVnode: oldVnode,
+                newVnode: newVnode,
+            });
+        }
+    }
+    else if ( oldVnode.type !== newVnode.type ) {  // 节点类型不同
          // 说明节点被替换
          currentPatch.push({
             type: DIFF_TYPE.REPLACE,
             indexCode:indexCode,
-            content: newVnode,
-            oldContent: oldVnode,
+            oldVnode: oldVnode,
+            newVnode: newVnode,
         });
-    }else{   // 节点类型相同
+    }
+    else{   // 节点类型相同
         if( isComponent(oldVnode as vnode) ){
-            if( newVnode.instance ){
-                console.log('wa！！！！ 新组件有 instance!!!------------------------')
-            }
-            let instance = newVnode.instance =  oldVnode.instance;
+            
+            console.log(34444)
+            let instance = oldVnode.instance;
+            console.log(oldVnode.props)
+            console.log(newVnode.props)
             instance.setProps(newVnode.props,newVnode.children)
                 // if( instance ){
                     // instance.setProps(newVnode.props,newVnode.children)
@@ -57,17 +66,19 @@ function walk(oldVnode:vnodeLike, newVnode:vnodeLike, indexCode:string, patches:
             //     currentPatch.push({
             //         type: DIFF_TYPE.ADD,
             //         indexCode:indexCode,
-            //         content: newVnode,
+            //         oldVnode: newVnode,
             //     })
             // }
         }else{
             // 比较属性是否有更改
-            let attrs = diffAttr(oldVnode.porps, newVnode.props);
+            let attrs = diffAttr(oldVnode.props, newVnode.props);
             if (Object.keys(attrs).length > 0) {
                 currentPatch.push({
                     type: DIFF_TYPE.ATTRS,
                     indexCode:indexCode,
-                    content: attrs
+                    oldVnode: oldVnode,
+                    newVnode: newVnode,
+                    attrs: attrs,
                 });
             }
             // 比较儿子们
@@ -75,15 +86,24 @@ function walk(oldVnode:vnodeLike, newVnode:vnodeLike, indexCode:string, patches:
         }
     }
 
-    currentPatch.length ? patches[indexCode] = currentPatch : null;
+    // currentPatch.length ? patches[indexCode] = currentPatch : null;
 }
 
-const diffAttr = function(oldProps,newProps){
-    return {}
+// 遍历变化的值
+const diffAttr = function( oldProps,newProps ){
+    let changeAttrs = {}
+
+    for(let key in newProps){
+        let value = newProps[key]
+        if( oldProps[key] !== value && typeof oldProps[key] !== 'function'){
+            changeAttrs[key] = value
+        }
+    }
+    return changeAttrs
 }
 
 // 比较子节点们
-const diffChildren = function(oldList:vnodeLike[],newList:vnodeLike[],parentCode:string,patches:Patches){
+const diffChildren = function(oldList:vnode[],newList:vnode[],parentCode:string,patches:patchOptions[]){
     let code = parentCode;
     oldList = oldList || []
     newList = newList || []
@@ -91,7 +111,6 @@ const diffChildren = function(oldList:vnodeLike[],newList:vnodeLike[],parentCode
 
     for(let i = 0;i<maxLen;i++){
         let oldChild = oldList[i]
-        // if(oldChild) index++
         walk(oldChild,newList[i],code + i,patches);
     }
 }
@@ -105,7 +124,7 @@ const diffChildren = function(oldList:vnodeLike[],newList:vnodeLike[],parentCode
 //         if(oldVnode !== newVnode){
 //             currentPatch.push({
 //                 type: DIFF_TYPE.TEXT,
-//                 content:newVnode
+//                 oldVnode:newVnode
 //             });
 //         }
         
@@ -115,7 +134,7 @@ const diffChildren = function(oldList:vnodeLike[],newList:vnodeLike[],parentCode
 //             type: DIFF_TYPE.ADD,
 //             index:index,
 //             insertType: insertType,
-//             content: newVnode,
+//             oldVnode: newVnode,
 //         })
 //     }else{  // 虚拟dom 节点
 //         walk(oldVnode as vnode,newVnode as vnode,index,patches)

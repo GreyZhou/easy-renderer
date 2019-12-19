@@ -1,5 +1,5 @@
 import '../utils/interface'
-import { renderComponent } from './render'
+import { renderComponent, updateComponent } from './render'
 import Observer from '../utils/observer'
 
 class ERerComponentBase {
@@ -7,9 +7,15 @@ class ERerComponentBase {
     public methods:any = {}  // 方法合集
     public $slots:vnode[]   // slots 合集
     public props:any = {}   // 传参
+    // public state:any = {}   // 数据
     public $el:HTMLElement;  // 渲染后的 dom
-    private timer:any;   // 定时器
-    private destroyed_flag:boolean; // 已销毁标识
+    public destroyed_flag:boolean; // 已销毁标识
+    public dirty_flag:boolean;  // 更新标识
+    // public nextStore:any = {   // 更新集合
+    //     state:{},
+    //     props:{},
+    //     children:null,
+    // } 
 
     constructor(){
         this.event = new Observer();
@@ -20,15 +26,15 @@ class ERerComponentBase {
     created(){}
     mounted(){}
 
-    // 延迟到一帧渲染
-    delayRender(){
-        if(this.destroyed_flag)return
-        cancelAnimationFrame(this.timer)
-        this.timer = requestAnimationFrame(()=>{
-            if(this.destroyed_flag)return
-            renderComponent( this );
-        })  
-    }
+    // // 延迟到一帧渲染
+    // delayRender(){
+    //     if(this.destroyed_flag)return
+    //     cancelAnimationFrame(this.timer)
+    //     this.timer = requestAnimationFrame(()=>{
+    //         if(this.destroyed_flag)return
+    //         renderComponent( this );
+    //     })  
+    // }
     unmounted(){
         this.$el.parentNode.removeChild(this.$el)
         this.destroyed_flag = true;
@@ -37,42 +43,62 @@ class ERerComponentBase {
     $emit(name:string,...arg){
         this.event.trigger(name,...arg)
     }
+    // 调整属性
+    multiProps(key,value){
+        if(/^\$\w+/.test(key) && typeof value === 'function'){
+            // console.log(key)
+            this.event.listen(key.replace('$',''),value)
+        }else{
+            this.props[key] = value
+        }
+    }
     setProps( props = {},children ){
+        console.log(props)
+        console.log(this.props)
         if( 
             JSON.stringify(props) === JSON.stringify(this.props) &&
             JSON.stringify(children) === JSON.stringify(this.$slots)
         ){
             return;
         }
-        this.$slots = children;
-        this.props = {}
-        console.log('setProps')
         Object.keys(props).forEach(key=>{
-            if(/^\$\w+/.test(key) && typeof props[key] === 'function'){
-                // console.log(key)
-                this.event.listen(key.replace('$',''),props[key])
-            }else{
-                this.props[key] = props[key]
-            }
+            this.props[key] = props[key]
         })
-        if ( !this.$el ) {//第一次渲染
-            console.log('setProps[first render]')
-            this.created()
-            renderComponent( this );
-            this.mounted();
-            console.log(this.$el)
-        }else{
-            console.log('setProps[fresh props]')
-            this.delayRender()
-            console.log(this.$el)
-        }
+        this.$slots = children;
+
+        updateComponent( this )
+
+        // if ( !this.$el ) {//第一次渲染
+        //     console.log('setProps[first render]')
+        //     this.created()
+        //     renderComponent( this );
+        //     this.mounted();
+        //     console.log(this.$el)
+        // }else{
+        //     console.log('setProps[fresh props]')
+        //     this.delayRender()
+        //     console.log(this.$el)
+        // }
     }
     // 更新data
-    setState(obj){
-        console.log('setState ')
-        Object.assign(this,obj) // 更新数据
-        this.delayRender()
-        console.log(this.$el)
+    setState(nextState){
+        let flag = false;
+        Object.keys(nextState).forEach(key=>{
+            // if(typeof this[key] === 'object' || this[key] instanceof Array ){
+            //     if( JSON.stringify(this[key]) !== JSON.stringify(nextState[key]) ){
+            //         flag = true;
+            //         this[key] = nextState[key]
+            //     }
+            // }
+            // else 
+            if(this[key] !== nextState[key]){
+                flag = true;
+                this[key] = nextState[key]
+            }
+        })
+        if( flag ){
+            updateComponent( this )
+        }
     }
 
 }
@@ -83,11 +109,22 @@ const ERerFactory = function(options:componentOptions){
         private name:string = options.name; // 组件名称
         constructor(props,children){
             super()
-            Object.assign(this,this.data())  // 合并 data 数据
+            // Object.assign(this.state,this.data())  // 合并 data 数据
+            // Object.assign(this,this.state);
+            Object.assign(this,this.data());
             this.methods = options.methods || {};
             Object.assign(this,this.methods)  // 合并 method 方法
-            this.setProps(props,children)  // 更新props
+            this.$slots = children;    // 塞入 slot
+            this.props = {}
+            // 拆分属性及事件
+            Object.keys(props).forEach(key=>{
+                this.multiProps(key, props[key])
+            })
+            this.created()
+            renderComponent( this )
+            this.mounted();
         }
+
         render(){
             return options.render && options.render.call(this);
         }

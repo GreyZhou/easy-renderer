@@ -5,6 +5,14 @@ import patch from './patch'
 import {RESERVED_PROPS,SPECIAL_PROPS } from './const'
  
 
+const requestAnimationFrame = function(method){
+    if(window.requestAnimationFrame){
+        return window.requestAnimationFrame(method)
+    }else{
+        return setTimeout(method)
+    }
+}
+
 
 // jsx --> vnode
 export const createElement = function(type, config, ...children){
@@ -25,12 +33,40 @@ export const createElement = function(type, config, ...children){
 
 // 处理 vnode children   主要处理 undefined 和 数字型
 const transVnode = function( vnode:vnode ):vnode{
+
+    // if(typeof vnode === 'string' || typeof vnode === 'number'){
+    //     vnode = {
+    //         type:'string',
+    //         dom: document.createTextNode(vnode)
+    //     }
+    // }
+    // else if(vnode instanceof HTMLElement){
+    //     vnode = {
+    //         type: 'element',
+    //         dom: vnode
+    //     }
+    // }
+    // else if( vnode === undefined || vnode === null){
+    //     vnode = {
+    //         type: null,
+    //     }
+    // }
     if( vnode.children && vnode.children.length ){
         vnode.children = vnode.children.map(item=>{
             if(item === undefined || item === null){
-                return ''
-            }else if( typeof item === 'number' ){
-                return String(item)
+                return {
+                    type: null,
+                }
+            }else if( typeof item === 'string' || typeof item === 'number' ){
+                return {
+                    type:'string',
+                    text: item,
+                }
+            }else if( item instanceof  HTMLElement){
+                return {
+                    type: 'element',
+                    dom: item
+                }
             }
             return item
         })
@@ -40,16 +76,23 @@ const transVnode = function( vnode:vnode ):vnode{
 
 
 // vnode --> dom
-export const _renderVnode = function(vnode:vnodeLike){
+export const _renderVnode = function(vnode:vnode){
     // *** 特别情况处理 ***
     // 纯dom
-    if(vnode instanceof HTMLElement){
-        return vnode
+    if(vnode.type === 'element'){
+        return vnode.dom
     }
     // 纯文本
-    if(typeof vnode === 'string') {
+    if( vnode.type === 'string') {
         // 生成文本节点
-        return document.createTextNode(vnode as string);
+        // return document.createTextNode(vnode as string);
+        vnode.dom  = document.createTextNode( vnode.text )
+        return vnode.dom
+    }
+    // 空节点
+    if( vnode.type === null ){
+        vnode.dom = document.createComment('');
+        return vnode.dom
     }
     // if(vnode instanceof Array){
     //     return vnode.map(item=>_renderVnode(item))
@@ -60,8 +103,9 @@ export const _renderVnode = function(vnode:vnodeLike){
     if(typeof vnode.type === 'function'){
         let component = createComponent(vnode.type,vnode.props,vnode.children)
         vnode.instance = component  // 虚拟dom 保留实例
+        vnode.dom = component.$el
         return component.$el;
-    }
+    } 
 
 
     // 普通dom
@@ -72,7 +116,8 @@ export const _renderVnode = function(vnode:vnodeLike){
         return document.createTextNode('');
     }
 
-    const node = document.createElement(vnode.type);
+    const node = document.createElement( vnode.type );
+    vnode.dom = node;
     Object.keys(attributes).forEach(key =>{
         if( SPECIAL_PROPS.hasOwnProperty(key) ){
             // 这里处理特殊属性
@@ -129,41 +174,56 @@ export const setAttrs = function(dom,name,value){
 
 // 渲染组件
 export const renderComponent = function( component ){
-    let $el;
     const vnode = component.render();  // 获取虚拟 dom   
-    console.log(component.name,vnode,)
-    
-    if(component.$el){
-        // console.log('start --------------')
-        // console.log(component.preVnodeTree,vnode)
-        let patches = diff(component.preVnodeTree,vnode)
-        console.log('patches: ',patches)
-        $el = patch( component.$el, patches )
-
-        if($el !==  component.$el){
-            let parent = component.$el.parentNode
-            parent.insertBefore($el,component.$el)
-            parent.removeChild(component.$el)
-        }
-    }else{
-        $el = _renderVnode( vnode );
-    }
-
+    let $el = _renderVnode( vnode );
     component.$el = $el;  // 真实 dom
     component.preVnodeTree = vnode; // 保存虚拟树，下次比对
 }
 
+// 更新对象
+const update = {
+    dirtyComponents:[],
+    timer:'',
+    start:false,
+    updateComponent( component ){
+        if(component.dirty_flag)return
+        component.dirty_flag = true;
+        this.dirtyComponents.push(component)
+
+        if( this.start === false ){
+            requestAnimationFrame(()=>{
+                console.log(this.dirtyComponents.length)
+                this.dirtyComponents.forEach(component=>{
+                    let vnode = component.render();
+                    console.log(component.name,vnode)
+                    let patches = diff(component.preVnodeTree,vnode)
+                    console.log(121212,patches)
+                    patch( component.preVnodeTree, patches )
+                    component.dirty_flag = false;
+                })
+                this.dirtyComponents = [];
+                this.start = false;
+            })
+            this.start = true;
+        }
+    },
+}
+// 更新组件 
+export const updateComponent = update.updateComponent.bind(update)
 
 
 // 插入dom
-export const render = function(vnode:vnodeLike,container:HTMLElement,replaceFlag:boolean){
+export const render = function(vnode:vnode,container:HTMLElement,replaceFlag:boolean){
+    console.log('first',vnode)
     let dom:HTMLElement = _renderVnode(vnode)
+       
+
     if( replaceFlag ){
         let parent:HTMLElement = container.parentElement;
         parent.insertBefore(dom,container)
         parent.removeChild(container)
     }else{
-        container.innerHTML = ""
+        container.innerHTML = '';
         container.appendChild(dom)
     }
 }

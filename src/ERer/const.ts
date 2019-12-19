@@ -1,7 +1,7 @@
-// 组件保留属性 内部需要使用
+// 保留字段 不提供 props 使用
 export const RESERVED_PROPS = {
-    // key:true,
     // $ref:true,
+    key:true,
     $el:true,
     preVnodeTree:true,
     $emit:true,
