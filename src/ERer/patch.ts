@@ -10,35 +10,12 @@ const patch = function( oldTree:vnode, patches:patchOptions[] ):HTMLElement{
 
 // 遍历处理
 const patchWalk = function( tree:vnode, patches:patchOptions[] ){
-    // let domMap:any = {
-    //     "0": node
-    // };
-    // Object.keys(patches).forEach((code)=>{
-    //     let patch_arr = patches[code]
-    //     applyPatches( domMap, code, patch_arr )
-    // })
     if( patches.length == 0 )return
     const _getVnode = getVnode(tree)
 
     patches.forEach(patchObj=>{
         applyPatches( patchObj,_getVnode )
     })
-
-    // let patch_arr = patches[treeCode]
-    // console.log(treeCode,node)
-    // //遍历子节点
-    // let len = node.childNodes
-    //     ? node.childNodes.length
-    //     : 0
-    // for (var i = 0; i < len; i++) {
-    //     let child:HTMLElement = node.childNodes[i] as HTMLElement
-    //     patchWalk(child, indexObj, patches)
-    // }
-    
-    // //将当前节点的修改记录进行真是的dom修改
-    // if ( patch_arr ) {
-    //     return applyPatches(node, patch_arr)
-    // }
 
     return tree.dom as HTMLElement
 }
