@@ -53,8 +53,6 @@ class ERerComponentBase {
         }
     }
     setProps( props = {},children ){
-        console.log(props)
-        console.log(this.props)
         if( 
             JSON.stringify(props) === JSON.stringify(this.props) &&
             JSON.stringify(children) === JSON.stringify(this.$slots)
@@ -67,7 +65,7 @@ class ERerComponentBase {
         this.$slots = children;
 
         updateComponent( this )
-
+        
         // if ( !this.$el ) {//第一次渲染
         //     console.log('setProps[first render]')
         //     this.created()

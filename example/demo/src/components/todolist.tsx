@@ -38,7 +38,6 @@ const Todo = ERer.component('todoList',{
         addItem(){
             let text = this.text;
             this.loadingList.push(text)
-            console.log(this.loadingList)
             this.setState({
                 text:"",
                 loadingList:[...this.loadingList],
@@ -53,7 +52,7 @@ const Todo = ERer.component('todoList',{
                 this.loadingList.push(item[0])
             }else{
                 let item = this.loadingList.splice(index,1)
-                // this.finishList.unshift(item[0])
+                this.finishList.unshift(item[0])
             }
             this.setState({
                 loadingList:[...this.loadingList],
@@ -70,7 +69,7 @@ const Todo = ERer.component('todoList',{
 
 const Item = ERer.component('todoItem',{
     render(){
-        let checkClass = this.check?'active':''
+        let checkClass = this.props.check?'active':''
         console.log('now todoItem',this.props)
         return <div className={`todo-item ${checkClass}`}>
             <div className={`check-box ${checkClass}`} onclick={()=>this.change()}></div>
@@ -78,20 +77,13 @@ const Item = ERer.component('todoItem',{
             <div className='remove'></div>
         </div>
     },
-    data(){
-        return {
-            check:false,
-        }
-    },
-    created(){
-        this.check = this.props.check || false
-    },
+
     methods:{
         change(){
-            let val = !this.check
-            this.setState({
-                check:val
-            })
+            let val = !this.props.check
+            // this.setState({
+            //     check:val
+            // })
             this.$emit('change',val)
         }
     }

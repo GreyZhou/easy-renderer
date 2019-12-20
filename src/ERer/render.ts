@@ -104,6 +104,7 @@ export const _renderVnode = function(vnode:vnode){
         let component = createComponent(vnode.type,vnode.props,vnode.children)
         vnode.instance = component  // 虚拟dom 保留实例
         vnode.dom = component.$el
+        console.log('render：',component.name)
         return component.$el;
     } 
 
@@ -189,19 +190,25 @@ const update = {
         if(component.dirty_flag)return
         component.dirty_flag = true;
         this.dirtyComponents.push(component)
-
         if( this.start === false ){
             requestAnimationFrame(()=>{
-                console.log(this.dirtyComponents.length)
-                this.dirtyComponents.forEach(component=>{
-                    let vnode = component.render();
-                    console.log(component.name,vnode)
-                    let patches = diff(component.preVnodeTree,vnode)
-                    console.log(121212,patches)
-                    patch( component.preVnodeTree, patches )
-                    component.dirty_flag = false;
-                })
-                this.dirtyComponents = [];
+                while(this.dirtyComponents.length !== 0){
+                    let now_component = this.dirtyComponents.shift();
+                    let vnode = now_component.render();
+                    let patches = diff(now_component.preVnodeTree,vnode)
+                    console.log(now_component.name,patches)
+                    patch( now_component.preVnodeTree, patches )
+                    now_component.dirty_flag = false;
+                }
+                // this.dirtyComponents.forEach(component=>{
+                //     let vnode = component.render();
+                //     console.log(component.name,vnode)
+                //     let patches = diff(component.preVnodeTree,vnode)
+                //     console.log(121212,patches)
+                //     patch( component.preVnodeTree, patches )
+                //     component.dirty_flag = false;
+                // })
+                // this.dirtyComponents = [];
                 this.start = false;
             })
             this.start = true;
