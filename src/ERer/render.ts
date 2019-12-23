@@ -141,34 +141,44 @@ export const _renderVnode = function(vnode:vnode){
 export const setAttrs = function(dom,name,value){
     // 事件
     if ( /^on\w+/.test( name ) && typeof value === 'function' ) {
-        name = name.toLowerCase();
-        dom[ name ] = value;
+        name = name.toLowerCase().replace(/^on/,'');
+        dom.addEventListener(name,value)
     // 如果属性名是style，则更新style对象
     } else if ( name === 'style' ) {
         if ( !value || typeof value === 'string' ) {
             dom.style.cssText = value || '';
         } else if ( value && typeof value === 'object' ) {
             for ( let name in value ) {
-                // 可以通过style={ width: 20 }这种形式来设置样式，可以省略掉单位px
-                dom.style[ name ] = typeof value[ name ] === 'number' ? value[ name ] + 'px' : value[ name ];
+                dom.style[ name ] =  value[ name ];
             }
         }
     // 普通属性
-    } else {
+    } else if( name.indexOf('$-') === -1 ) {
+        // dom 对象
+        name = name === 'class' ? 'className' : name;   // 调整属性名称
         if ( name in dom ) {
+            console.log(name,value)
             dom[ name ] = value || '';
         }
-        // 调整属性名称
-        switch ( name ) {
-            case 'className':
-                name = 'class'
-                break;
-        }
 
+        // dom 属性
+        name = name === 'className' ? 'class' : name;   // 调整属性名称
         if ( value ) {
             dom.setAttribute( name, value );
         } else {
             dom.removeAttribute( name, value );
+        }
+    // 特殊属性 $-
+    }else{
+        console.log(name)
+        console.log(name.replace(/^\$-/,''))
+        switch ( name.replace(/^\$-/,'') ) {
+            // case 'model':
+            //     dom.addEventListener('input',)
+            //     break;
+        
+            default:
+                break;
         }
     }
 }
@@ -176,6 +186,7 @@ export const setAttrs = function(dom,name,value){
 // 渲染组件
 export const renderComponent = function( component ){
     const vnode = component.render();  // 获取虚拟 dom   
+    console.log(vnode)
     let $el = _renderVnode( vnode );
     component.$el = $el;  // 真实 dom
     component.preVnodeTree = vnode; // 保存虚拟树，下次比对

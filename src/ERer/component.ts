@@ -1,5 +1,5 @@
 import '../utils/interface'
-import { renderComponent, updateComponent } from './render'
+import { createElement,renderComponent, updateComponent } from './render'
 import Observer from '../utils/observer'
 
 class ERerComponentBase {
@@ -124,7 +124,7 @@ const ERerFactory = function(options:componentOptions){
         }
 
         render(){
-            return options.render && options.render.call(this);
+            return options.render && options.render.call(this,createElement);
         }
         data(){
             return options.data && options.data.call(this);

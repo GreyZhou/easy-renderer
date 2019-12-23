@@ -12,11 +12,9 @@ import './src/scss/index.scss'
 //         return <div>999</div>
 //     }
 // }
-
-
 ERer.render(
-    <div className='todo-list-app'>
-        <div className="title">ToDoList</div>
+    <div class='todo-list-app'>
+        <div class="title">ToDoList</div>
         { undefined }
         <Todo></Todo>
     </div>,

@@ -1,25 +1,30 @@
 import ERer from '/src/ERer'
 
 const Todo = ERer.component('todoList',{
-    render(){
+    render(h){
         console.log('now: todoWrap')
         return <div className="todo-wrap">
             <div className="todo-input">
                 <input 
                     value={ this.text } 
-                    oninput={(e)=>this.text = e.target.value}
+                    oninput={(e)=>{
+                        let text = e.target.value
+                        this.setState({
+                            text:text,
+                        })
+                    }}
                     onkeypress={e=>this.enter(e)}
                 />
-                <div className="add" onclick={()=>this.addItem()}>添加</div>
+                <div class="add" onclick={()=>this.addItem()}>添加</div>
             </div>
-            <div className="loading">
-                <div className="title">待完成列表<span className='num'>{ this.loadingList.length }</span></div>
+            <div class="loading">
+                <div class="title">待完成列表<span class='num'>{ this.loadingList.length }</span></div>
                 {
                     this.loadingList.map((str,i)=><Item text={str} $change={(val)=>this.changeItem(val,i)}></Item>)
                 }
             </div>
-            <div className="finish">
-                <div className="title">已完成列表<span className='num'>{ this.finishList.length }</span></div>
+            <div class="finish">
+                <div class="title">已完成列表<span class='num'>{ this.finishList.length }</span></div>
                 {
                     this.finishList.map((str,i)=><Item text={str} check={true} $change={(val)=>this.changeItem(val,i)}></Item>)
                 }
@@ -39,9 +44,10 @@ const Todo = ERer.component('todoList',{
             let text = this.text;
             this.loadingList.push(text)
             this.setState({
-                text:"",
+                text:'',
                 loadingList:[...this.loadingList],
             })
+            console.log(this)
         },
         changeItem(finishFlag,index){
             // console.log('changeItem',finishFlag,index)
@@ -71,10 +77,10 @@ const Item = ERer.component('todoItem',{
     render(){
         let checkClass = this.props.check?'active':''
         console.log('now todoItem',this.props)
-        return <div className={`todo-item ${checkClass}`}>
-            <div className={`check-box ${checkClass}`} onclick={()=>this.change()}></div>
-            <div className='text'>{ this.props.text }</div>
-            <div className='remove'></div>
+        return <div class={`todo-item ${checkClass}`}>
+            <div class={`check-box ${checkClass}`} onclick={()=>this.change()}></div>
+            <div class='text'>{ this.props.text }</div>
+            <div class='remove'></div>
         </div>
     },
 

@@ -64,7 +64,7 @@ function walk(oldVnode:vnode, newVnode:vnode, indexCode:string, patches:patchOpt
         // });
     }
     else{   // 节点类型相同
-        if( isComponent(oldVnode as vnode) ){
+        if( isComponent(oldVnode as vnode) && oldVnode.props.class === newVnode.props.class){
             let instance = oldVnode.instance;
             instance.setProps(newVnode.props,newVnode.children)
                 // if( instance ){
@@ -118,7 +118,7 @@ const diffChildren = function(oldList:vnode[],newList:vnode[],parentCode:string,
 
     for(let i = 0;i<maxLen;i++){
         let oldChild = oldList[i]
-        walk(oldChild,newList[i],code + i,patches);
+        walk(oldChild,newList[i],`${code},${i}`,patches);
     }
 }
 
