@@ -102,7 +102,7 @@ export const _renderVnode = function(vnode:vnode){
     // 组件
     if(typeof vnode.type === 'function'){
         let component = createComponent(vnode.type,vnode.props,vnode.children)
-        vnode.instance = component  // 虚拟dom 保留实例
+        vnode.instance = component  // 保留实例
         vnode.dom = component.$el
         console.log('render：',component.name)
         return component.$el;

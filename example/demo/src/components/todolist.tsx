@@ -6,6 +6,7 @@ const Todo = ERer.component('todoList',{
         return <div className="todo-wrap">
             <div className="todo-input">
                 <input 
+                    $ref='input'
                     value={ this.text } 
                     oninput={(e)=>{
                         let text = e.target.value
