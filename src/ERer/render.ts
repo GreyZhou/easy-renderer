@@ -18,6 +18,7 @@ const requestAnimationFrame = function(method){
 export const createElement = function(type, config, ...children){
     children = children.length ? [].concat(...children) : null;
     const props = {};
+    let key = config.key
     if( config ){
         for (let propName in config) {
             if (
@@ -28,7 +29,8 @@ export const createElement = function(type, config, ...children){
             }
         }
     }
-    return transVnode({ type, props, children })
+
+    return transVnode({ type, key, props, children })
 }
 
 // 处理 vnode children   主要处理 undefined 和 数字型
@@ -52,23 +54,33 @@ const transVnode = function( vnode:vnode ):vnode{
     //     }
     // }
     if( vnode.children && vnode.children.length ){
+        let indexCount = 0
         vnode.children = vnode.children.map(item=>{
+
+            let res
             if(item === undefined || item === null){
-                return {
+                res = {
                     type: null,
                 }
             }else if( typeof item === 'string' || typeof item === 'number' ){
-                return {
+                res = {
                     type:'string',
                     text: item,
                 }
             }else if( item instanceof  HTMLElement){
-                return {
+                res = {
                     type: 'element',
                     dom: item
                 }
+            }else{
+                res = item
             }
-            return item
+
+            if(res.key === undefined){
+                res.key = '.' + indexCount;
+                indexCount++
+            }
+            return res
         })
     }
     return vnode
