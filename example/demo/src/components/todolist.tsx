@@ -21,13 +21,13 @@ const Todo = ERer.component('todoList',{
             <div class="loading">
                 <div class="title">待完成列表<span class='num'>{ this.loadingList.length }</span></div>
                 {
-                    this.loadingList.map((str,i)=><Item text={str} $change={(val)=>this.changeItem(val,i)}></Item>)
+                    this.loadingList.map((str,i)=><Item text={str} $change={(val)=>this.changeItem(val,i)} key={str}></Item>)
                 }
             </div>
             <div class="finish">
                 <div class="title">已完成列表<span class='num'>{ this.finishList.length }</span></div>
                 {
-                    this.finishList.map((str,i)=><Item text={str} check={true} $change={(val)=>this.changeItem(val,i)}></Item>)
+                    this.finishList.map((str,i)=><Item text={str} check={true} $change={(val)=>this.changeItem(val,i)} key={str}></Item>)
                 }
             </div>
         </div>

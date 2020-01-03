@@ -18,7 +18,7 @@ const requestAnimationFrame = function(method){
 export const createElement = function(type, config, ...children){
     children = children.length ? [].concat(...children) : null;
     const props = {};
-    let key = config.key
+    let key;
     if( config ){
         for (let propName in config) {
             if (
@@ -28,6 +28,7 @@ export const createElement = function(type, config, ...children){
                 props[propName] = config[propName];
             }
         }
+        key = config.key
     }
 
     return transVnode({ type, key, props, children })
@@ -55,6 +56,7 @@ const transVnode = function( vnode:vnode ):vnode{
     // }
     if( vnode.children && vnode.children.length ){
         let indexCount = 0
+        let cacheKeyMap = {}
         vnode.children = vnode.children.map(item=>{
 
             let res
@@ -76,10 +78,12 @@ const transVnode = function( vnode:vnode ):vnode{
                 res = item
             }
 
-            if(res.key === undefined){
+            if(res.key === undefined || cacheKeyMap[res.key] ){
                 res.key = '.' + indexCount;
                 indexCount++
             }
+
+            cacheKeyMap[ res.key ] = true
             return res
         })
     }
@@ -169,7 +173,7 @@ export const setAttrs = function(dom,name,value){
         // dom 对象
         name = name === 'class' ? 'className' : name;   // 调整属性名称
         if ( name in dom ) {
-            console.log(name,value)
+            // console.log(name,value)
             dom[ name ] = value || '';
         }
 

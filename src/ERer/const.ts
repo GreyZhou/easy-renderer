@@ -24,4 +24,5 @@ export const DIFF_TYPE = {
     REMOVE : 'REMOVE',  //移除操作
     REPLACE : 'REPLACE',  //替换操作
     ADD : 'ADD',  // 创建操作
+    MOVETO : 'MOVETO',  // 移动操作
 }

@@ -22,11 +22,12 @@ interface vnode {
 // 单个 patch 描述
 interface patchOptions {
     type: string;
-    indexCode: string;
-    oldVnode: any
+    oldVnode?: any
     newVnode?: any
+    parentVnode?: any;
     index?: number;
     attrs?:any
+    indexCode?: string;
     // text?: string
     // newNode?: vnode
     // attrs?:any 
