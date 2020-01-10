@@ -15,6 +15,7 @@ export const SPECIAL_PROPS = {
     $ref:true,
     $show:true,
     $model:true,
+    children:true,
 }
 
 // diff type

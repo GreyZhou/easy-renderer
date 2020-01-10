@@ -20,6 +20,10 @@ class Observer {
         let list = this.funcMap[name] || [];
         return list.length !== 0
     }
+
+    clean(name){
+        this.funcMap[name] && (this.funcMap[name] = [])
+    }
 }
 
 export default Observer;

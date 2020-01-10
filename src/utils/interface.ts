@@ -11,12 +11,13 @@ interface componentOptions {
 // 虚拟dom 属性
 interface vnode {
     type:string | Function | null // tag 名称或者组件构造函数
-    key?:number | string   // key
-    props?:any        // 属性等配置
-    children?:Array<vnodeLike>  // 子元素
-    instance?:any  // 组件实例
-    dom?: Node  // dom 引用
-    text?: string  // 文本值
+    key:number | string   // key
+    props:any        // 属性等配置
+    // children?:Array<vnodeLike>  // 子元素
+    instance:any  // 组件实例
+    dom: Node  // dom 引用
+    parent: vnode  // 父级
+    // text?: string  // 文本值
 }
 
 // 单个 patch 描述

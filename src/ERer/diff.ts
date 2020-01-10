@@ -5,8 +5,9 @@ import { isComponent } from './component'
 // diff 主入口
 const diff = function(oldTree:vnode, newTree:vnode):patchOptions[] {
     let patches:patchOptions[] = [];
-    console.log(oldTree)
-    console.log(newTree)
+    // console.log('--- diff ---')
+    // console.log(oldTree,newTree)
+    // console.log('--------')
     // 递归树， 比较后的结果放到补丁包中
     walk(oldTree, newTree, patches)
     return patches;
@@ -66,9 +67,9 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[],parentVnode
         // });
     }
     else{   // 节点类型相同
-        if( isComponent(oldVnode as vnode) && oldVnode.props.class === newVnode.props.class){
+        if( isComponent(oldVnode as vnode) ){
             let instance = oldVnode.instance;
-            instance.setProps(newVnode.props,newVnode.children)
+            instance.setProps(newVnode.props)
                 // if( instance ){
                     // instance.setProps(newVnode.props,newVnode.children)
             // }else{
@@ -91,7 +92,9 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[],parentVnode
             }
             // 比较儿子们
             // diffChildren(oldVnode.children,newVnode.children,patches,oldVnode);
-            diffChildren2(oldVnode.children,newVnode.children,patches,oldVnode);
+            let old_list = oldVnode.props && oldVnode.props.children || []
+            let new_list = newVnode.props && newVnode.props.children || []
+            diffChildren2( old_list, new_list, patches, oldVnode);
         }
     }
 
@@ -172,12 +175,21 @@ const diffChildren2 = function(oldList:vnode[],newList:vnode[],patches:patchOpti
 // 遍历变化的值
 const diffAttr = function( oldProps,newProps ){
     let changeAttrs = {}
-
     for(let key in newProps){
+        if(key === 'children') continue
         let value = newProps[key]
-        if( oldProps[key] !== value && typeof oldProps[key] !== 'function'){
+        // if( typeof oldProps[key] == 'function' && typeof value == 'function' && JSON.stringify(oldProps[key]) !== JSON.stringify(value) ){
+        //     // oldProps[key] = value
+        //     changeAttrs[key] = value
+        // }else if( oldProps[key] !== value  || typeof oldProps[key] == 'function'){
+        //     changeAttrs[key] = value
+        // }
+        if( oldProps[key] !== value  && typeof oldProps[key] !== 'function'){
             changeAttrs[key] = value
         }
+        // if(JSON.stringify(oldProps[key]) !== JSON.stringify(value)){
+        //     changeAttrs[key] = value
+        // }
     }
     return changeAttrs
 }
@@ -259,7 +271,7 @@ const updateChildren =  (function(){
             removeVnodes(parentElm, oldList, oldStartIndex, oldEndIndex)
         }
     }
-}()
+})()
 
 // // 对 vnode children 处理，先过滤 再比较
 // const walkChild = function( oldVnode:vnodeLike,newVnode:vnodeLike,index:number,patches:Patches,i:number){
@@ -289,7 +301,5 @@ const updateChildren =  (function(){
 //     currentPatch.length ? patches[index] = currentPatch : null;
 
 // }
-
-
 
 export default diff

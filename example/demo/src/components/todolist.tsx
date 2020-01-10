@@ -2,7 +2,7 @@ import ERer from '/src/ERer'
 
 const Todo = ERer.component('todoList',{
     render(h){
-        console.log('now: todoWrap')
+        console.log('获取模板: todoList')
         return <div className="todo-wrap">
             <div className="todo-input">
                 <input 
@@ -21,7 +21,16 @@ const Todo = ERer.component('todoList',{
             <div class="loading">
                 <div class="title">待完成列表<span class='num'>{ this.loadingList.length }</span></div>
                 {
-                    this.loadingList.map((str,i)=><Item text={str} $change={(val)=>this.changeItem(val,i)} key={str}></Item>)
+                    this.loadingList.map((str,i)=>{
+                        console.log(str,i)
+                        return <Item text={str} $change={(val)=>this.changeItem(val,i)} key={str}></Item>
+                    })
+           
+                }
+                {
+                    this.loadingList.map((str,i)=>{
+                        return <div onclick={()=>{ console.log(i) }}>{ str },{i}</div>
+                    })
                 }
             </div>
             <div class="finish">
@@ -48,12 +57,16 @@ const Todo = ERer.component('todoList',{
                 text:'',
                 loadingList:[...this.loadingList],
             })
-            console.log(this)
+            console.log(this.loadingList)
         },
         changeItem(finishFlag,index){
             // console.log('changeItem',finishFlag,index)
             // let start = this.loadingList
             // let end = this.finishList 
+            console.log(index)
+            console.log(this.finishList.join(','))
+            console.log(this.loadingList.join(','))
+
             if(!finishFlag){
                 let item = this.finishList.splice(index,1)
                 this.loadingList.push(item[0])
@@ -65,6 +78,7 @@ const Todo = ERer.component('todoList',{
                 loadingList:[...this.loadingList],
                 finishList:[...this.finishList],
             })
+            console.log(this.loadingList)
         },
         enter(e){
             if(e.keyCode === 13){
@@ -77,7 +91,7 @@ const Todo = ERer.component('todoList',{
 const Item = ERer.component('todoItem',{
     render(){
         let checkClass = this.props.check?'active':''
-        console.log('now todoItem',this.props)
+        console.log('获取模板： todoItem',this.props)
         return <div class={`todo-item ${checkClass}`}>
             <div class={`check-box ${checkClass}`} onclick={()=>this.change()}></div>
             <div class='text'>{ this.props.text }</div>
@@ -91,6 +105,7 @@ const Item = ERer.component('todoItem',{
             // this.setState({
             //     check:val
             // })
+            console.log('change!!!!!!!!!!!!!!')
             this.$emit('change',val)
         }
     }

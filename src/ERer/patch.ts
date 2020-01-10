@@ -1,4 +1,4 @@
-import { _renderVnode,setAttrs } from './render'
+import transElement,{setAttrs } from './transElement'
 import { DIFF_TYPE } from './const'
 import { isComponent } from './component'
 
@@ -37,8 +37,8 @@ const applyPatches = function( patch:patchOptions ){
             self_index =  patch.index;
 
             dom.parentNode.removeChild(dom)
-            if(parentVnode){
-                parentVnode.children.splice(self_index,1)
+            if(parentVnode && parentVnode.props){
+                parentVnode.props.children.splice(self_index,1)
             }
 
             // if( isComponent(patch.content) ){
@@ -78,8 +78,8 @@ const applyPatches = function( patch:patchOptions ){
             parentVnode = patch.parentVnode;
             self_index =  patch.index;
 
-            let newDom = _renderVnode(patch.newVnode)
-            parentVnode.children.splice(self_index,0,patch.newVnode)  // 补丁
+            let newDom = transElement(patch.newVnode)
+            parentVnode.props.children.splice(self_index,0,patch.newVnode)  // 补丁
             insertDom(parentVnode.dom, newDom, self_index)
             break;
 

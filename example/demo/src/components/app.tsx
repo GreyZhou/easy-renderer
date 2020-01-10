@@ -1,4 +1,4 @@
-import ERer from '/src/ERer'
+import ERer from '../ERer.js'
 export default ERer.component('hello',{
     data(){
         return {

@@ -1,4 +1,4 @@
-import ERer from '/src/ERer'
+import ERer from './src/ERer'
 import App from './src/components/app.tsx'
 import Todo from './src/components/todolist.tsx'
 import './src/scss/index.scss'
@@ -12,10 +12,12 @@ import './src/scss/index.scss'
 //         return <div>999</div>
 //     }
 // }
+let div = document.createElement('div')
 ERer.render(
     <div class='todo-list-app'>
         <div class="title">ToDoList</div>
         { undefined }
+        { div }
         <Todo></Todo>
     </div>,
     document.getElementById('root')
