@@ -12,6 +12,7 @@ import './src/scss/index.scss'
 //         return <div>999</div>
 //     }
 // }
+
 let div = document.createElement('div')
 ERer.render(
     <div class='todo-list-app'>

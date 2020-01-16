@@ -1,7 +1,9 @@
 import '../utils/interface'
-import { createElement,updateComponent } from './render'
+import { createElement } from './render'
 import transElement from './transElement'
 import Observer from '../utils/observer'
+import diff from './diff'
+import patch from './patch'
 
 // 空节点
 class NullNode {
@@ -65,34 +67,41 @@ class ERerComponentBase {
     // 调整属性
     multiProps(key,value){
         if(/^\$\w+/.test(key) && typeof value === 'function'){
-            // console.log(key)
-            console.log('multi')
+            let name = key.replace('$','');
+            if(this.event.hasEvent(name)){
+                this.event.clean(name)
+            }
             // this.event.hasEvent(key) && this.event.clean(key)
-            this.event.listen(key.replace('$',''),value)
-            console.log(this.event)
-        }else if(key === 'children'){
-            this.$slots = value;
+            this.event.listen(name,value)
+            // console.log(this.event)
         }else{
             this.props[key] = value
         }
     }
-    setProps( props = {} ){
-        console.log(props)
-        console.log(this.props)
-        // if( 
-        //     !Object.keys(props).some(key=>typeof props[key] === 'function') &&
-        //     JSON.stringify(props) === JSON.stringify(this.props) &&
-        //     JSON.stringify(children) === JSON.stringify(this.$slots)
-        // ){
-        //     return;
-        // }
-        console.log('set!!!!!!!!')
-        // 拆分属性及事件
-        Object.keys(props).forEach(key=>{
-            this.multiProps(key, props[key])
-        })
+    setProps( props = {}, children ){
+        // console.log(props)
+        // console.log(this.props)
+        let filter_props = Object.keys(props).reduce((res,key)=>{
+            if(typeof props[key] === 'function'){
+                this.multiProps(key,props[key])
+                delete res[key]
+            }
+            return res
+        },props)
 
-        updateComponent( this )
+        if( 
+            // !Object.keys(props).some(key=>typeof props[key] === 'function') &&
+            JSON.stringify(filter_props) === JSON.stringify(this.props) &&
+            JSON.stringify(children) === JSON.stringify(this.$slots)
+        ){
+            return;
+        }
+        // 拆分属性及事件
+        Object.keys(filter_props).forEach(key=>{
+            this.multiProps(key, filter_props[key])
+        })
+        this.$slots = children;
+        update.updateComponent( this )
         
         // if ( !this.$el ) {//第一次渲染
         //     console.log('setProps[first render]')
@@ -123,10 +132,9 @@ class ERerComponentBase {
             }
         })
         if( flag ){
-            updateComponent( this )
+            update.updateComponent( this )
         }
     }
-
 }
 
 // 生成组件类的工厂
@@ -135,14 +143,14 @@ const ERerFactory = (function(){
     return function(options:componentOptions){
         class ERerComponent extends  ERerComponentBase {
             private name:string = options.name; // 组件名称
-            constructor(props){
+            constructor(props, children){
                 super()
                 // Object.assign(this.state,this.data())  // 合并 data 数据
                 // Object.assign(this,this.state);
                 Object.assign(this,this.data());
                 this.methods = options.methods || {};
                 Object.assign(this,this.methods)  // 合并 method 方法
-                // this.$slots = children;    // 塞入 slot
+                this.$slots = children;    // 塞入 slot
                 this.props = {}
                 // 拆分属性及事件
                 Object.keys(props).forEach(key=>{
@@ -222,12 +230,49 @@ export const isComponent = function(vnode:vnode){
 // 渲染组件
 const renderComponent = function( component ){
     const vnode = component.render();  // 获取虚拟 dom   
-    console.log(vnode)
+    console.log('--renderComponent--',vnode)
     let $el = transElement( vnode );
     component.$el = $el;  // 真实 dom
     component.preVnodeTree = vnode; // 保存虚拟树，下次比对
 }
 
+// 更新对象
+const update = {
+    dirtyComponents:[],
+    timer:'',
+    start:false,
+    updateComponent( component ){
+        if(component.dirty_flag)return
+        component.dirty_flag = true;
+        this.dirtyComponents.push(component)
+        if( this.start === false ){
+            requestAnimationFrame(()=>{
+                console.time('update')
+                while(this.dirtyComponents.length !== 0){
+                    let now_component = this.dirtyComponents.shift();
+                    let vnode = now_component.render();
+                    let patches = diff(now_component.preVnodeTree,vnode)
+                    console.log('update',now_component.name,patches)
+                    patch( now_component.preVnodeTree, patches )
+                    now_component.dirty_flag = false;
+                }
+                console.timeEnd('update')
+
+                // this.dirtyComponents.forEach(component=>{
+                //     let vnode = component.render();
+                //     console.log(component.name,vnode)
+                //     let patches = diff(component.preVnodeTree,vnode)
+                //     console.log(121212,patches)
+                //     patch( component.preVnodeTree, patches )
+                //     component.dirty_flag = false;
+                // })
+                // this.dirtyComponents = [];
+                this.start = false;
+            })
+            this.start = true;
+        }
+    },
+}
 
 // 注册组件 方法
 export const component = function(name,options:componentOptions){

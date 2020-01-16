@@ -2,7 +2,7 @@
 import {SPECIAL_PROPS } from './const'
 import { createComponent } from './component'
 
-const transElement = function(vnode:vnode){
+const transElement = function(vnode:vnode):Node{
     // 特殊属性
     if( vnode.props['$if'] === false ){
         return document.createComment('');
@@ -16,7 +16,7 @@ const transElement = function(vnode:vnode){
     if( vnode.type === 'string') {
         // 生成文本节点
         // return document.createTextNode(vnode as string);
-        vnode.dom  = document.createTextNode( vnode.dom  ) 
+        vnode.dom  = document.createTextNode( vnode.props.text  ) 
         return vnode.dom
     }
     // 空节点
@@ -52,9 +52,9 @@ const transElement = function(vnode:vnode){
             setAttrs(node,key,attributes[key])
         });
         
-        if (vnode.props && vnode.props.children) {
+        if ( vnode.children ) {
             // 递归调用render生成子节点
-            vnode.props.children.forEach(child => node.appendChild(transElement(child)));
+            vnode.children.forEach(child => node.appendChild(transElement(child)));
         }
         
         return node;

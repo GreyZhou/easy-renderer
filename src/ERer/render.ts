@@ -33,28 +33,27 @@ export const createElement = function(type, config, ...children){
         key = config.key || null
     }
 
-    current_element = ERerElement( type, key, props )
-
     if(children){
         let indexCount = 0
         let cacheKeyMap = {}
 
-        props.children = children.map( item => {
+        children = children.map( item => {
             if(typeof item !== 'object' || item instanceof HTMLElement ){
                 let child_type,child_dom = null
+                let self_props:any = {};
                 if( item === undefined || item === null ){
                     child_type = 'null'
                 }else if( typeof item === 'string' || typeof item === 'number'){
                     child_type = 'string'
-                    child_dom = item  // 先用纯文本占位
+                    self_props.text = item   // 先用纯文本占位
                 }else if(item instanceof HTMLElement){
                     child_type = 'element'
                     child_dom = item
                 }
 
-                item = ERerElement( child_type, null, {}, child_dom )
+                item = ERerElement( child_type, null, self_props, null, child_dom )
             }
-            item.parent = current_element
+            // item.parent = current_element
 
             if(item.key === null || cacheKeyMap[item.key] ){
                 item.key = '.' + indexCount;
@@ -66,66 +65,10 @@ export const createElement = function(type, config, ...children){
         })
     }
 
-    return current_element
+    return ERerElement( type, key, props, children )
 }
 
-// 处理 vnode children   主要处理 undefined 和 数字型
-const transVnode = function( vnode:vnode ):vnode{
-
-    // if(typeof vnode === 'string' || typeof vnode === 'number'){
-    //     vnode = {
-    //         type:'string',
-    //         dom: document.createTextNode(vnode)
-    //     }
-    // }
-    // else if(vnode instanceof HTMLElement){
-    //     vnode = {
-    //         type: 'element',
-    //         dom: vnode
-    //     }
-    // }
-    // else if( vnode === undefined || vnode === null){
-    //     vnode = {
-    //         type: null,
-    //     }
-    // }
-    if( vnode.children && vnode.children.length ){
-        let indexCount = 0
-        let cacheKeyMap = {}
-        vnode.children = vnode.children.map(item=>{
-
-            let res
-            if(item === undefined || item === null){
-                res = {
-                    type: null,
-                }
-            }else if( typeof item === 'string' || typeof item === 'number' ){
-                res = {
-                    type:'string',
-                    text: item,
-                }
-            }else if( item instanceof  HTMLElement){
-                res = {
-                    type: 'element',
-                    dom: item
-                }
-            }else{
-                res = item
-            }
-
-            if(res.key === undefined || cacheKeyMap[res.key] ){
-                res.key = '.' + indexCount;
-                indexCount++
-            }
-
-            cacheKeyMap[ res.key ] = true
-            return res
-        })
-    }
-    return vnode
-}
-
-const ERerElement = function(type, key, props, dom = null){
+const ERerElement = function(type, key, props, children, dom = null){
     let instance = null;
     parent = null;
 
@@ -133,12 +76,95 @@ const ERerElement = function(type, key, props, dom = null){
         type,
         key,
         props,
+        children,
         dom,
         instance,
         parent,
     }
     return res;
 }
+
+// 插入dom
+export const render = function(vnode:vnode,container:HTMLElement,replaceFlag:boolean){
+
+    let dom:Node = transElement(vnode)
+    if( replaceFlag ){
+        let parent:HTMLElement = container.parentElement;
+        parent.insertBefore(dom,container)
+        parent.removeChild(container)
+    }else{
+        container.innerHTML = '';
+        container.appendChild(dom)
+    }
+}
+
+// 包裹dom
+export const renderWrap = function(vnode:vnode,child:HTMLElement){
+    let parent:HTMLElement = child.parentElement;
+    let insert:HTMLElement = document.createElement('div');
+    parent.insertBefore(insert,child);
+    let dom:Node = transElement(vnode)
+    parent.insertBefore(dom,insert)
+    parent.removeChild(insert)
+}
+
+
+// // 处理 vnode children   主要处理 undefined 和 数字型
+// const transVnode = function( vnode:vnode ):vnode{
+
+//     // if(typeof vnode === 'string' || typeof vnode === 'number'){
+//     //     vnode = {
+//     //         type:'string',
+//     //         dom: document.createTextNode(vnode)
+//     //     }
+//     // }
+//     // else if(vnode instanceof HTMLElement){
+//     //     vnode = {
+//     //         type: 'element',
+//     //         dom: vnode
+//     //     }
+//     // }
+//     // else if( vnode === undefined || vnode === null){
+//     //     vnode = {
+//     //         type: null,
+//     //     }
+//     // }
+//     if( vnode.children && vnode.children.length ){
+//         let indexCount = 0
+//         let cacheKeyMap = {}
+//         vnode.children = vnode.children.map(item=>{
+
+//             let res
+//             if(item === undefined || item === null){
+//                 res = {
+//                     type: null,
+//                 }
+//             }else if( typeof item === 'string' || typeof item === 'number' ){
+//                 res = {
+//                     type:'string',
+//                     text: item,
+//                 }
+//             }else if( item instanceof  HTMLElement){
+//                 res = {
+//                     type: 'element',
+//                     dom: item
+//                 }
+//             }else{
+//                 res = item
+//             }
+
+//             if(res.key === undefined || cacheKeyMap[res.key] ){
+//                 res.key = '.' + indexCount;
+//                 indexCount++
+//             }
+
+//             cacheKeyMap[ res.key ] = true
+//             return res
+//         })
+//     }
+//     return vnode
+// }
+
 
 // // vnode --> dom
 // export const _renderVnode = function(vnode:vnode){
@@ -249,67 +275,8 @@ const ERerElement = function(type, key, props, dom = null){
 // }
 
 
-// 更新对象
-const update = {
-    dirtyComponents:[],
-    timer:'',
-    start:false,
-    updateComponent( component ){
-        if(component.dirty_flag)return
-        component.dirty_flag = true;
-        this.dirtyComponents.push(component)
-        if( this.start === false ){
-            requestAnimationFrame(()=>{
-                while(this.dirtyComponents.length !== 0){
-                    let now_component = this.dirtyComponents.shift();
-                    let vnode = now_component.render();
-                    let patches = diff(now_component.preVnodeTree,vnode)
-                    console.log('update',now_component.name,patches)
-                    patch( now_component.preVnodeTree, patches )
-                    now_component.dirty_flag = false;
-                }
-                // this.dirtyComponents.forEach(component=>{
-                //     let vnode = component.render();
-                //     console.log(component.name,vnode)
-                //     let patches = diff(component.preVnodeTree,vnode)
-                //     console.log(121212,patches)
-                //     patch( component.preVnodeTree, patches )
-                //     component.dirty_flag = false;
-                // })
-                // this.dirtyComponents = [];
-                this.start = false;
-            })
-            this.start = true;
-        }
-    },
-}
-// 更新组件 
-export const updateComponent = update.updateComponent.bind(update)
 
 
-// 插入dom
-export const render = function(vnode:vnode,container:HTMLElement,replaceFlag:boolean){
-
-    let dom:HTMLElement = transElement(vnode)
-    if( replaceFlag ){
-        let parent:HTMLElement = container.parentElement;
-        parent.insertBefore(dom,container)
-        parent.removeChild(container)
-    }else{
-        container.innerHTML = '';
-        container.appendChild(dom)
-    }
-}
-
-// 包裹dom
-export const renderWrap = function(vnode:vnode,child:HTMLElement){
-    let parent:HTMLElement = child.parentElement;
-    let insert:HTMLElement = document.createElement('div');
-    parent.insertBefore(insert,child);
-    let dom:HTMLElement = transElement(vnode)
-    parent.insertBefore(dom,insert)
-    parent.removeChild(insert)
-}
 
 
 

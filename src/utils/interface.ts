@@ -13,7 +13,7 @@ interface vnode {
     type:string | Function | null // tag 名称或者组件构造函数
     key:number | string   // key
     props:any        // 属性等配置
-    // children?:Array<vnodeLike>  // 子元素
+    children?:Array<vnode>  // 子元素
     instance:any  // 组件实例
     dom: Node  // dom 引用
     parent: vnode  // 父级
@@ -27,8 +27,10 @@ interface patchOptions {
     newVnode?: any
     parentVnode?: any;
     index?: number;
+    oldIndex?: number;
     attrs?:any
     indexCode?: string;
+    newText?:string;
     // text?: string
     // newNode?: vnode
     // attrs?:any 

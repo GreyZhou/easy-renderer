@@ -63,9 +63,8 @@ const Todo = ERer.component('todoList',{
             // console.log('changeItem',finishFlag,index)
             // let start = this.loadingList
             // let end = this.finishList 
-            console.log(index)
-            console.log(this.finishList.join(','))
-            console.log(this.loadingList.join(','))
+            // console.log(this.finishList.join(','))
+            console.log(index,this.loadingList.join(','))
 
             if(!finishFlag){
                 let item = this.finishList.splice(index,1)
@@ -102,10 +101,6 @@ const Item = ERer.component('todoItem',{
     methods:{
         change(){
             let val = !this.props.check
-            // this.setState({
-            //     check:val
-            // })
-            console.log('change!!!!!!!!!!!!!!')
             this.$emit('change',val)
         }
     }

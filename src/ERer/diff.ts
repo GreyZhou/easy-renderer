@@ -5,9 +5,9 @@ import { isComponent } from './component'
 // diff 主入口
 const diff = function(oldTree:vnode, newTree:vnode):patchOptions[] {
     let patches:patchOptions[] = [];
-    // console.log('--- diff ---')
-    // console.log(oldTree,newTree)
-    // console.log('--------')
+    console.log('--- diff ---')
+    console.log(oldTree,newTree)
+    console.log('--------')
     // 递归树， 比较后的结果放到补丁包中
     walk(oldTree, newTree, patches)
     return patches;
@@ -25,6 +25,7 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[],parentVnode
             oldVnode: oldVnode,
             index: index,
         });
+        return null
     }
     else if( !oldVnode && newVnode ){ // 新增
         // console.log('add------', newVnode)
@@ -34,17 +35,21 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[],parentVnode
             newVnode: newVnode,
             index: index,
         })
+        return newVnode
     }
     else if( oldVnode.type === 'string' && newVnode.type === 'string' ){  // 文本
-        if(oldVnode.text !== newVnode.text){
+        if(oldVnode.props.text !== newVnode.props.text){
             currentPatch.push({
                 type: DIFF_TYPE.TEXT,
                 oldVnode: oldVnode,
                 newVnode: newVnode,
+                newText: newVnode.props.text,
             });
         }
+        return newVnode
     }
     else if ( oldVnode.type !== newVnode.type ) {  // 节点类型不同
+        console.log(index,parentVnode)
         currentPatch.push({
             type: DIFF_TYPE.REMOVE,
             parentVnode: parentVnode,
@@ -61,17 +66,19 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[],parentVnode
         //  // 说明节点被替换
         //  currentPatch.push({
         //     type: DIFF_TYPE.REPLACE,
-        //     indexCode:indexCode,
+        //     parentVnode: parentVnode,
+        //     index: index,
         //     oldVnode: oldVnode,
         //     newVnode: newVnode,
         // });
+        return newVnode
     }
     else{   // 节点类型相同
         if( isComponent(oldVnode as vnode) ){
             let instance = oldVnode.instance;
             instance.setProps(newVnode.props)
-                // if( instance ){
-                    // instance.setProps(newVnode.props,newVnode.children)
+            // if( instance ){
+                // instance.setProps(newVnode.props,newVnode.children)
             // }else{
             //     currentPatch.push({
             //         type: DIFF_TYPE.ADD,
@@ -79,6 +86,7 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[],parentVnode
             //         oldVnode: newVnode,
             //     })
             // }
+            return oldVnode
         }else{
             // 比较属性是否有更改
             let attrs = diffAttr(oldVnode.props, newVnode.props);
@@ -91,10 +99,11 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[],parentVnode
                 });
             }
             // 比较儿子们
-            // diffChildren(oldVnode.children,newVnode.children,patches,oldVnode);
-            let old_list = oldVnode.props && oldVnode.props.children || []
-            let new_list = newVnode.props && newVnode.props.children || []
-            diffChildren2( old_list, new_list, patches, oldVnode);
+            diffChildren2(oldVnode.children,newVnode.children,patches,oldVnode);
+            // let old_list = oldVnode.props && oldVnode.props.children || []
+            // let new_list = newVnode.props && newVnode.props.children || []
+            // diffChildren( old_list, new_list, patches, oldVnode);
+            return oldVnode
         }
     }
 
@@ -120,6 +129,17 @@ const diffChildren2 = function(oldList:vnode[],newList:vnode[],patches:patchOpti
     // let multiCache:any[] = [];  // 移动及删除 vnode 数据缓存
     oldList = oldList || []
     newList = newList || []
+
+    // console.log([...oldList].sort((a,b)=>a.key - b.key).some((item,i,arr)=>{
+    //     if(item.key === arr[i+1] && arr[i+1].key){
+    //         console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    //         return  true
+    //     }
+    // }))
+    // console.log([...newList])
+
+
+
     // 旧列表 key -- index 映射
     let indexMap = oldList.reduce((res,item,i) => {
             res[item.key] = i
@@ -129,7 +149,7 @@ const diffChildren2 = function(oldList:vnode[],newList:vnode[],patches:patchOpti
     while(nextIndex <= newList.length - 1){
         let newChild = newList[nextIndex];
         let index = indexMap[newChild.key];
-        if( index === undefined ){
+        if( index === undefined ){  // 新增
             // 临时缓存
             addCache.push({
                 old: null,
@@ -137,17 +157,20 @@ const diffChildren2 = function(oldList:vnode[],newList:vnode[],patches:patchOpti
                 index: nextIndex,
             })
         }else{
+            let nextVnode = walk(oldList[index],newChild,patches,parentVnode,index)
+
             if(index < lastIndex){
                 patches.push({
                     type: DIFF_TYPE.MOVETO,
                     parentVnode: parentVnode,
                     index: nextIndex,
-                    oldVnode: oldList[index]
+                    oldIndex: index,
+                    oldVnode: nextVnode
                 })
-                console.log(oldList,newList)
-                console.log('move!!!!',index,oldList[index])
+                // console.log(oldList,newList)
+                // console.log('move!!!!',index,oldList[index])
             }
-            walk(oldList[index],newChild,patches,parentVnode)
+       
             
             lastIndex = Math.max(index,lastIndex);
         }
@@ -155,20 +178,42 @@ const diffChildren2 = function(oldList:vnode[],newList:vnode[],patches:patchOpti
     }
 
     let copy_oldList = [...oldList]
+
     for(let child of newList){
         let index = indexMap[child.key]
         if(index !== undefined ){
             copy_oldList.splice(index,1,null)
         }
     }
-    copy_oldList.forEach( item => {
-        if( item === null) return
+    copy_oldList.sort((a,b)=>{
+        let index_a = a === null? null : indexMap[a.key]
+        let index_b = b === null? null : indexMap[b.key]
+        return index_b - index_a
+    })
+    .filter(item=>{
+        return item !== null
+    })
+    .forEach( (item,i) => {
         let index = indexMap[item.key]
         walk(item,null,patches,parentVnode,index)
     })
+
+
     addCache.forEach(obj=>{
         walk(obj.old,obj.new,patches,parentVnode,obj.index)
     })
+
+    setTimeout(()=>{
+        if(oldList.length !== newList.length || oldList.some((item,i)=>{
+            return item.type !== newList[i].type || item.key !== newList[i].key
+        })){
+            console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+            console.log(oldList)
+            console.log(newList)
+            console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    
+        }
+    },10)
 }
 
 
@@ -176,15 +221,15 @@ const diffChildren2 = function(oldList:vnode[],newList:vnode[],patches:patchOpti
 const diffAttr = function( oldProps,newProps ){
     let changeAttrs = {}
     for(let key in newProps){
-        if(key === 'children') continue
+        // if(key === 'children') continue
         let value = newProps[key]
         // if( typeof oldProps[key] == 'function' && typeof value == 'function' && JSON.stringify(oldProps[key]) !== JSON.stringify(value) ){
         //     // oldProps[key] = value
         //     changeAttrs[key] = value
         // }else if( oldProps[key] !== value  || typeof oldProps[key] == 'function'){
         //     changeAttrs[key] = value
-        // }
-        if( oldProps[key] !== value  && typeof oldProps[key] !== 'function'){
+        // }    
+        if( JSON.stringify(oldProps[key]) !== JSON.stringify(value)  && typeof oldProps[key] !== 'function'){
             changeAttrs[key] = value
         }
         // if(JSON.stringify(oldProps[key]) !== JSON.stringify(value)){

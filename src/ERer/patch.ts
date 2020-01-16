@@ -1,4 +1,4 @@
-import transElement,{setAttrs } from './transElement'
+import transElement,{ setAttrs } from './transElement'
 import { DIFF_TYPE } from './const'
 import { isComponent } from './component'
 
@@ -24,7 +24,7 @@ const applyPatches = function( patch:patchOptions ){
     let vnode:vnode = patch.oldVnode;
     let dom:Node = patch.oldVnode && patch.oldVnode.dom;
     // let code_arr,code_len,parent_codeArr,self_code,parentVnode
-    let self_index,parentVnode
+    let self_index,parentVnode,newDom
     switch (patch.type) {
         case DIFF_TYPE.REMOVE:  // 移除
             // code_arr = patch.indexCode.split(',').map(str=>Number(str));
@@ -36,10 +36,10 @@ const applyPatches = function( patch:patchOptions ){
             parentVnode = patch.parentVnode;
             self_index =  patch.index;
 
-            dom.parentNode.removeChild(dom)
-            if(parentVnode && parentVnode.props){
-                parentVnode.props.children.splice(self_index,1)
+            if(parentVnode){
+                parentVnode.children.splice(self_index,1)
             }
+            dom.parentNode.removeChild(dom)
 
             // if( isComponent(patch.content) ){
             //     patch.content.instance.unmounted()
@@ -50,22 +50,22 @@ const applyPatches = function( patch:patchOptions ){
             break;
 
         case DIFF_TYPE.TEXT:  // 文本替换
-            vnode.text = patch.newVnode.text;  // 补丁
+            vnode.props.text = patch.newText;  // 补丁
             if (dom.textContent) {
-                dom.textContent = vnode.text
+                dom.textContent = patch.newText
             } else {
-                dom.nodeValue = vnode.text
+                dom.nodeValue = patch.newText
             }
             break;
 
         case DIFF_TYPE.REPLACE:  // 节点替换
-            // if( isComponent(patch.oldContent) ){
-            //     patch.oldContent.instance.unmounted()
-            //     delete patch.oldContent.instance
-            // }else{
-            //     domMap[parent_code].removeChild(dom)
-            // }
-            // insertDom(domMap[parent_code], _renderVnode(patch.content), self_code)
+            parentVnode = patch.parentVnode;
+            self_index =  patch.index;
+
+            parentVnode.children.splice(self_index,1,patch.newVnode)  // 补丁
+            newDom = transElement(patch.newVnode)
+            dom.parentNode.removeChild(dom)
+            insertDom(parentVnode.dom, newDom, self_index)
             break;
 
         case DIFF_TYPE.ADD:  // 新增
@@ -78,8 +78,8 @@ const applyPatches = function( patch:patchOptions ){
             parentVnode = patch.parentVnode;
             self_index =  patch.index;
 
-            let newDom = transElement(patch.newVnode)
-            parentVnode.props.children.splice(self_index,0,patch.newVnode)  // 补丁
+            newDom = transElement(patch.newVnode)
+            parentVnode.children.splice(self_index,0,patch.newVnode)  // 补丁
             insertDom(parentVnode.dom, newDom, self_index)
             break;
 
@@ -89,6 +89,23 @@ const applyPatches = function( patch:patchOptions ){
             Object.keys(attrs).forEach(key=>{
                 setAttrs(dom,key,attrs[key])
             })
+            break;
+
+        case DIFF_TYPE.MOVETO:
+            parentVnode = patch.parentVnode;
+            let now_index = patch.oldIndex;
+            let next_index =  patch.index;
+    
+            if(parentVnode){
+                let arr = parentVnode.children;
+                arr.splice(now_index,1)
+                arr.splice(next_index, 0, vnode)
+            }
+
+            let calc_index = now_index < next_index 
+                ? next_index + 1
+                : next_index
+            insertDom(parentVnode.dom, vnode.dom, calc_index)
             break;
     }
 }
@@ -140,7 +157,7 @@ const insertDom = function(parentDom:HTMLElement, insertDom:Node, index:number){
     if( (len == 0 && index == 0) || (index == len) ){
         parentDom.appendChild(insertDom)
     }else{
-        let afterDom = parentDom[index]
+        let afterDom = nodes_arr[index]
         parentDom.insertBefore(insertDom,afterDom)
     }
 }
