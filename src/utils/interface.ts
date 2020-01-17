@@ -16,7 +16,8 @@ interface vnode {
     children?:Array<vnode>  // 子元素
     instance:any  // 组件实例
     dom: Node  // dom 引用
-    parent: vnode  // 父级
+    parent?: vnode  // 父级
+    _mountIndex?: number; // move计算时使用
     // text?: string  // 文本值
 }
 
@@ -27,7 +28,7 @@ interface patchOptions {
     newVnode?: any
     parentVnode?: any;
     index?: number;
-    oldIndex?: number;
+    toIndex?: number;
     attrs?:any
     indexCode?: string;
     newText?:string;
