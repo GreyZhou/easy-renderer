@@ -1,6 +1,6 @@
 import transElement,{ setAttrs } from './transElement'
 import { DIFF_TYPE } from './const'
-import { isComponent } from './component'
+// import { isComponent } from './component'
 
 
 const patch = function( oldTree:vnode, patches:patchOptions[] ):HTMLElement{
@@ -21,51 +21,23 @@ const patchWalk = function( tree:vnode, patches:patchOptions[] ){
 
 // 对应节点操作
 const applyPatches = function( patch:patchOptions ){
-    let vnode:vnode = patch.oldVnode;
-    let dom:Node = patch.oldVnode && patch.oldVnode.dom;
+    // let vnode:vnode = patch.oldVnode;
+    let dom:Node = patch.dom;
     // let code_arr,code_len,parent_codeArr,self_code,parentVnode
-    let self_index,parentVnode,newDom
+    let parentVnode,beforeVnode,newDom
     switch (patch.type) {
         case DIFF_TYPE.REMOVE:  // 移除
-            // code_arr = patch.indexCode.split(',').map(str=>Number(str));
-            // code_len = code_arr.length;
-            // parent_codeArr = code_arr.slice(0,code_len - 1)
-            // self_code = code_arr[code_len - 1]
-            // parentVnode = _getVnode(parent_codeArr);
-
-            // parentVnode = patch.parentVnode;
-            // self_index =  patch.index;
-
-            // if(parentVnode){
-            //     parentVnode.children.splice(self_index,1)
-            // }
-            dom.parentNode.removeChild(dom)
-
-            // if( isComponent(patch.content) ){
-            //     patch.content.instance.unmounted()
-            //     delete patch.content.instance
-            // }else{
-            //     domMap[parent_code].removeChild(dom)
-            // }
+            patch.parentDom.removeChild(dom)
             break;
 
         case DIFF_TYPE.ADD:  // 新增
-            // console.log('add--------vnode:', patch.content)
-            // code_arr = patch.indexCode.split(',').map(str=>Number(str));
-            // code_len = code_arr.length;
-            // parent_codeArr = code_arr.slice(0,code_len - 1)
-            // self_code = code_arr[code_len - 1]
-            // parentVnode = _getVnode(parent_codeArr);
-            parentVnode = patch.parentVnode;
-            // self_index =  patch.index;
-            // parentVnode.children.splice(self_index,0,patch.newVnode)  // 补丁
-
+            // parentVnode = patch.parentVnode;
+            // beforeVnode = patch.beforeVnode;
             newDom = transElement(patch.newVnode)
-            insertDom(parentVnode.dom, newDom, patch.index)
+            insertAfter(patch.parentDom, newDom, patch.beforeDom)
             break;
 
         case DIFF_TYPE.TEXT:  // 文本替换
-            // vnode.props.text = patch.newText;  // 补丁
             if (dom.textContent) {
                 dom.textContent = patch.newText
             } else {
@@ -74,46 +46,23 @@ const applyPatches = function( patch:patchOptions ){
             break;
 
         case DIFF_TYPE.REPLACE:  // 节点替换
-            parentVnode = patch.parentVnode;
-            // self_index =  patch.index;
-
-            // parentVnode.children.splice(self_index,1,patch.newVnode)  // 补丁
+            // parentVnode = patch.parentVnode;
             newDom = transElement(patch.newVnode)
+            insertAfter(patch.parentDom, newDom, dom)
             dom.parentNode.removeChild(dom)
-            insertDom(parentVnode.dom, newDom, patch.index)
             break;
-
-
 
         case DIFF_TYPE.ATTRS:  //  属性变化
             let attrs = patch.attrs;
-            // parentVnode = patch.parentVnode;
-            // parentVnode.children[patch.index] = {
-            //     ...patch.newVnode,
-            //     dom:vnode.dom,
-            //     instance:vnode.instance,
-            // }
-            // vnode.props = patch.newVnode.props;
             Object.keys(attrs).forEach(key=>{
                 setAttrs(dom,key,attrs[key])
             })
             break;
 
         case DIFF_TYPE.MOVETO:
-            parentVnode = patch.parentVnode;
-            let index = patch.index;
-            let to_index =  patch.toIndex;
-    
-            // if(parentVnode){
-            //     let arr = parentVnode.children;
-            //     arr.splice(index,1)
-            //     arr.splice(to_index, 0, vnode)
-            // }
-
-            let calc_index = index < to_index 
-                ? to_index + 1
-                : to_index
-            insertDom(parentVnode.dom, vnode.dom, calc_index)
+            // parentVnode = patch.parentVnode;
+            // beforeVnode = patch.beforeVnode;
+            insertAfter(patch.parentDom, dom, patch.beforeDom)
             break;
     }
 }
@@ -170,4 +119,12 @@ const insertDom = function(parentDom:HTMLElement, insertDom:Node, index:number){
     }
 }
 
+const insertAfter = function(parentDom:HTMLElement, insertDom:Node, beforeDom:Node){
+    if(!beforeDom){
+        parentDom.appendChild(insertDom)        
+    }else{
+        let afterDom = beforeDom.nextSibling;
+        parentDom.insertBefore(insertDom,afterDom)
+    }
+}
 export default patch

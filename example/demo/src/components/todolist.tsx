@@ -18,12 +18,31 @@ const Todo = ERer.component('todoList',{
                 />
                 <div class="add" onclick={()=>this.addItem()}>添加</div>
             </div>
+            <div onclick={()=>{
+                this.setState({
+                    show:!this.show
+                })
+            }}
+            >
+                看我
+            </div>
+            <Test show={ this.show }></Test>
             <div class="loading">
                 <div class="title">待完成列表<span class='num'>{ this.loadingList.length }</span></div>
                 {
                     this.loadingList.map((str,i)=>{
                         console.log(str,i)
-                        return <Item text={str} $change={(val)=>this.changeItem(val,i)} key={str}></Item>
+                        // @dragstart="dragIndex = index"
+                        // @dragenter="handleEnter(index)"
+                        // @dragend="dragIndex = ''"
+                        return <Item 
+                            text={str} 
+                            $change={(val)=>this.changeItem(val,i)} 
+                            $dragstart={()=>this.setState({dragIndex:i})}
+                            $dragenter={()=>this.handleEnter(i)}
+                            $dragend={()=>this.setState({dragIndex:''})}
+                            key={str}>
+                        </Item>
                     })
            
                 }
@@ -44,6 +63,8 @@ const Todo = ERer.component('todoList',{
     data(){
         return {
             text:"",
+            show: true,
+            dragIndex:"",
             loadingList:[],
             finishList:[],
         }
@@ -83,7 +104,20 @@ const Todo = ERer.component('todoList',{
             if(e.keyCode === 13){
                 this.addItem()
             }
-        }
+        },
+        // 拖拽经过自己
+        handleEnter(index){
+            if ( index == this.dragIndex ) {
+                return;
+            }
+            let value = this.loadingList[this.dragIndex];
+            this.loadingList[this.dragIndex] = this.loadingList[index];
+            this.loadingList[index] = value;
+            this.setState({
+                loadingList: [...this.loadingList],
+                dragIndex: index,
+            })
+        },
     }
 })
 
@@ -91,7 +125,11 @@ const Item = ERer.component('todoItem',{
     render(){
         let checkClass = this.props.check?'active':''
         console.log('获取模板： todoItem',this.props)
-        return <div class={`todo-item ${checkClass}`}>
+        return <div class={`todo-item ${checkClass}`}
+            draggable
+            ondragstart={()=>this.$emit('dragstart')}
+            ondragenter={()=>this.$emit('dragenter')}
+            ondragend={()=>this.$emit('dragend')}>
             <div class={`check-box ${checkClass}`} onclick={()=>this.change()}></div>
             <div class='text'>{ this.props.text }</div>
             <div class='remove'></div>
@@ -106,6 +144,15 @@ const Item = ERer.component('todoItem',{
     }
 })
 
+const Test = ERer.component('Test',{
+    render(){
+        console.log('test 模板')
+        let val = this.props.show
+        return val 
+            ? <div>hello</div>
+            : ""
+    }
+})
 
 export default Todo
 

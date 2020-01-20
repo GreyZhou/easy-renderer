@@ -127,6 +127,7 @@ class ERerComponentBase {
             // }
             // else 
             if(this[key] !== nextState[key]){
+                console.log(key,nextState[key])
                 flag = true;
                 this[key] = nextState[key]
             }
@@ -251,8 +252,12 @@ const update = {
                 while(this.dirtyComponents.length !== 0){
                     let now_component = this.dirtyComponents.shift();
                     let vnode = now_component.render();
-                    let patches = diff(now_component.preVnodeTree,vnode)
+                    if(!vnode){
+                        vnode = createElement(vnode)
+                    }
+                    let patches = diff(now_component.preVnodeTree, vnode, now_component.moved)
                     console.log('update',now_component.name,patches)
+                    now_component.preVnodeTree = vnode
                     patch( now_component.preVnodeTree, patches )
                     now_component.dirty_flag = false;
                 }

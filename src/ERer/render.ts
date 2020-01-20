@@ -16,11 +16,13 @@ const requestAnimationFrame = function(method){
 
 
 // jsx --> vnode
-export const createElement = function(type, config, ...children){
+export const createElement = function(type, config?, ...children){
     children = children.length ? [].concat(...children) : null;
     const props:any = {};
     let key = null;
-    let current_element;
+    if(!type){
+        type = 'null';
+    }
     if( config ){
         for (let propName in config) {
             if (
@@ -32,6 +34,12 @@ export const createElement = function(type, config, ...children){
         }
         key = config.key || null
     }
+
+    return ERerElement( type, key, props, children )
+}
+
+const ERerElement = function(type, key, props, children, dom = null){
+    let instance = null;
 
     if(children){
         let indexCount = 0
@@ -53,7 +61,6 @@ export const createElement = function(type, config, ...children){
 
                 item = ERerElement( child_type, null, self_props, null, child_dom )
             }
-            // item.parent = current_element
 
             if(item.key === null || cacheKeyMap[item.key] ){
                 item.key = '.' + indexCount;
@@ -65,13 +72,6 @@ export const createElement = function(type, config, ...children){
         })
     }
 
-    return ERerElement( type, key, props, children )
-}
-
-const ERerElement = function(type, key, props, children, dom = null){
-    let instance = null;
-    parent = null;
-
     let res = {
         type,
         key,
@@ -79,7 +79,6 @@ const ERerElement = function(type, key, props, children, dom = null){
         children,
         dom,
         instance,
-        parent,
     }
     return res;
 }

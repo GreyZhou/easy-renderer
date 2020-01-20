@@ -66,9 +66,10 @@ const transElement = function(vnode:vnode):Node{
 // 设置原生dom属性
 export const setAttrs = function(dom,name,value){
     // 事件
-    if ( /^on\w+/.test( name ) && typeof value === 'function' ) {
-        name = name.toLowerCase().replace(/^on/,'');
-        dom.addEventListener(name,value)
+    if ( typeof value === 'function' || /^on\w+/.test( name ) ) {
+        // name = name.toLowerCase().replace(/^on/,'');
+        // dom.addEventListener(name,value)
+        dom[name] = value
     // 如果属性名是style，则更新style对象
     } else if ( name === 'style' ) {
         if ( !value || typeof value === 'string' ) {
