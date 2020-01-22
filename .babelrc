@@ -1,0 +1,30 @@
+{
+    "presets": [
+      ["poi/babel",{
+
+      }],
+      ["@babel/preset-typescript"],
+      ["@babel/env",
+        {
+          "targets": {
+            "ie": 9
+          },
+          "useBuiltIns": "usage",
+        //   "modules": "umd",
+          "corejs": 3
+        }
+      ]
+    ],
+    "plugins": [
+        "transform-class-properties",
+    //   [
+    //       "@babel/plugin-transform-runtime",
+    //       {
+    //           "corejs": false,
+    //           "helpers": true,
+    //           "regenerator": true,
+    //           "useESModules": false
+    //       }
+    //   ]
+    ]
+  }

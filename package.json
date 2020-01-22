@@ -1,13 +1,13 @@
 {
   "name": "easy-renderer",
-  "version": "1.0.0",
+  "version": "0.0.7",
   "description": "类 vue 语法，用于 js 插件开发、页面开发的小型库，支持 JSX",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "eg": "parcel example/demo/index.html",
-    "dev": "parcel ./example/demo/index.html",
-    "dist": "parcel build src/index.ts"
+    "dist": "parcel build index.js",
+    "dist2": "poi --prod --config poi.config.js"
   },
   "repository": {
     "type": "git",
@@ -33,9 +33,18 @@
     "parcel-bundler": "^1.12.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.7.5",
+    "@babel/cli": "^7.7.0",
+    "@babel/core": "^7.7.2",
+    "@babel/polyfill": "^7.7.0",
+    "@babel/preset-env": "7.4.5",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "core-js": "^3.6.4",
+    "cross-env": "^6.0.3",
     "parcel": "^1.12.4",
     "parcel-bundler": "^1.12.4",
+    "poi": "^12.7.5",
+    "ts-loader": "^6.2.1",
     "typescript": "^3.7.3"
   }
 }

@@ -213,84 +213,84 @@ const diffAttr = function( oldProps, newProps, moved = false ){
     return changeAttrs
 }
 
-const updateChildren =  (function(){
-    let sameVnode = function(oldOne:vnode,newOne:vnode):boolean{
-        return oldOne.type === newOne.type && oldOne.key === newOne.key
-    }
+// const updateChildren =  (function(){
+//     let sameVnode = function(oldOne:vnode,newOne:vnode):boolean{
+//         return oldOne.type === newOne.type && oldOne.key === newOne.key
+//     }
 
-    return function(oldList:vnode[],newList:vnode[],parentCode:string,patches:patchOptions[]) {
-        let oldStartIndex = 0, newStartIndex = 0,
-            oldEndIndex = oldList.length - 1,
-            newEndIndex = newList.length - 1,
-            oldStartVnode = oldList[0],
-            newStartVnode = newList[0],
-            oldEndVnode = oldList[oldEndIndex],
-            newEndVnode = newList[newEndIndex]
+//     return function(oldList:vnode[],newList:vnode[],parentCode:string,patches:patchOptions[]) {
+//         let oldStartIndex = 0, newStartIndex = 0,
+//             oldEndIndex = oldList.length - 1,
+//             newEndIndex = newList.length - 1,
+//             oldStartVnode = oldList[0],
+//             newStartVnode = newList[0],
+//             oldEndVnode = oldList[oldEndIndex],
+//             newEndVnode = newList[newEndIndex]
     
-        let oldKeyToIndex
-        let IndexInOld
-        let elmToMove
-        let before
-        while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {                                                                               
-            // if (oldStartVnode == null) { 
-            //     oldStartVnode = oldList[++oldStartIndex] 
-            //     // walk(oldChild,newList[i],`${code},${i}`,patches);
-            // }else if (oldEndVnode == null) {
-            //     oldEndVnode = oldList[--oldEndIndex]
-            // }else if (newStartVnode == null) {
-            //     newStartVnode = newList[++newStartIndex]
-            // }else if (newEndVnode == null) {
-            //     newEndVnode = newList[--newEndIndex]
-            // }else 
-            if (sameVnode(oldStartVnode, newStartVnode)) {
-                walk(oldStartVnode, newStartVnode,`${parentCode},${newStartIndex}`,patches)
-                oldStartVnode = oldList[++oldStartIndex]
-                newStartVnode = newList[++newStartIndex]
-            }else if (sameVnode(oldEndVnode, newEndVnode)) {
-                walk(oldStartVnode, newStartVnode,`${parentCode},${newStartIndex}`,patches)
-                oldEndVnode = oldList[--oldEndIndex]
-                newEndVnode = newList[--newEndIndex]
-            }else if (sameVnode(oldStartVnode, newEndVnode)) {                                 m                    
-                patchVnode(oldStartVnode, newEndVnode)
-                api.insertBefore(parentElm, oldStartVnode.el, api.nextSibling(oldEndVnode.el))
-                oldStartVnode = oldList[++oldStartIndex]
-                newEndVnode = newList[--newEndIndex]
-            }else if (sameVnode(oldEndVnode, newStartVnode)) {
-                patchVnode(oldEndVnode, newStartVnode)
-                api.insertBefore(parentElm, oldEndVnode.el, oldStartVnode.el)
-                oldEndVnode = oldList[--oldEndIndex]
-                newStartVnode = newList[++newStartIndex]
-            }else {
-                // 使用key时的比较
-                if (oldKeyToIndex === undefined) {
-                    oldKeyToIndex = createKeyToOldIndex(oldList, oldStartIndex, oldEndIndex) // 有key生成index表
-                }
-                IndexInOld = oldKeyToIndex[newStartVnode.key]
-                if (!IndexInOld) {
-                    api.insertBefore(parentElm, createEle(newStartVnode).el, oldStartVnode.el)
-                    newStartVnode = newList[++newStartIndex]
-                }
-                else {
-                    elmToMove = oldList[IndexInOld]
-                    if (elmToMove.sel !== newStartVnode.sel) {
-                        api.insertBefore(parentElm, createEle(newStartVnode).el, oldStartVnode.el)
-                    }else {
-                        patchVnode(elmToMove, newStartVnode)
-                        oldList[IndexInOld] = null
-                        api.insertBefore(parentElm, elmToMove.el, oldStartVnode.el)
-                    }
-                    newStartVnode = newList[++newStartIndex]
-                }
-            }
-        }
-        if (oldStartIndex > oldEndIndex) {
-            before = newList[newEndIndex + 1] == null ? null : newList[newEndIndex + 1].el
-            addVnodes(parentElm, bef                        ore, newList, newStartIndex, newEndIndex)
-        }else if (newStartIndex > newEndIndex) {
-            removeVnodes(parentElm, oldList, oldStartIndex, oldEndIndex)
-        }
-    }
-})()
+//         let oldKeyToIndex
+//         let IndexInOld
+//         let elmToMove
+//         let before
+//         while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {                                                                               
+//             // if (oldStartVnode == null) { 
+//             //     oldStartVnode = oldList[++oldStartIndex] 
+//             //     // walk(oldChild,newList[i],`${code},${i}`,patches);
+//             // }else if (oldEndVnode == null) {
+//             //     oldEndVnode = oldList[--oldEndIndex]
+//             // }else if (newStartVnode == null) {
+//             //     newStartVnode = newList[++newStartIndex]
+//             // }else if (newEndVnode == null) {
+//             //     newEndVnode = newList[--newEndIndex]
+//             // }else 
+//             if (sameVnode(oldStartVnode, newStartVnode)) {
+//                 walk(oldStartVnode, newStartVnode,`${parentCode},${newStartIndex}`,patches)
+//                 oldStartVnode = oldList[++oldStartIndex]
+//                 newStartVnode = newList[++newStartIndex]
+//             }else if (sameVnode(oldEndVnode, newEndVnode)) {
+//                 walk(oldStartVnode, newStartVnode,`${parentCode},${newStartIndex}`,patches)
+//                 oldEndVnode = oldList[--oldEndIndex]
+//                 newEndVnode = newList[--newEndIndex]
+//             }else if (sameVnode(oldStartVnode, newEndVnode)) {                                 m                    
+//                 patchVnode(oldStartVnode, newEndVnode)
+//                 api.insertBefore(parentElm, oldStartVnode.el, api.nextSibling(oldEndVnode.el))
+//                 oldStartVnode = oldList[++oldStartIndex]
+//                 newEndVnode = newList[--newEndIndex]
+//             }else if (sameVnode(oldEndVnode, newStartVnode)) {
+//                 patchVnode(oldEndVnode, newStartVnode)
+//                 api.insertBefore(parentElm, oldEndVnode.el, oldStartVnode.el)
+//                 oldEndVnode = oldList[--oldEndIndex]
+//                 newStartVnode = newList[++newStartIndex]
+//             }else {
+//                 // 使用key时的比较
+//                 if (oldKeyToIndex === undefined) {
+//                     oldKeyToIndex = createKeyToOldIndex(oldList, oldStartIndex, oldEndIndex) // 有key生成index表
+//                 }
+//                 IndexInOld = oldKeyToIndex[newStartVnode.key]
+//                 if (!IndexInOld) {
+//                     api.insertBefore(parentElm, createEle(newStartVnode).el, oldStartVnode.el)
+//                     newStartVnode = newList[++newStartIndex]
+//                 }
+//                 else {
+//                     elmToMove = oldList[IndexInOld]
+//                     if (elmToMove.sel !== newStartVnode.sel) {
+//                         api.insertBefore(parentElm, createEle(newStartVnode).el, oldStartVnode.el)
+//                     }else {
+//                         patchVnode(elmToMove, newStartVnode)
+//                         oldList[IndexInOld] = null
+//                         api.insertBefore(parentElm, elmToMove.el, oldStartVnode.el)
+//                     }
+//                     newStartVnode = newList[++newStartIndex]
+//                 }
+//             }
+//         }
+//         if (oldStartIndex > oldEndIndex) {
+//             before = newList[newEndIndex + 1] == null ? null : newList[newEndIndex + 1].el
+//             addVnodes(parentElm, bef                        ore, newList, newStartIndex, newEndIndex)
+//         }else if (newStartIndex > newEndIndex) {
+//             removeVnodes(parentElm, oldList, oldStartIndex, oldEndIndex)
+//         }
+//     }
+// })()
 
 // // 对 vnode children 处理，先过滤 再比较
 // const walkChild = function( oldVnode:vnodeLike,newVnode:vnodeLike,index:number,patches:Patches,i:number){
