@@ -6,6 +6,7 @@ interface componentOptions {
     mounted?:Function  // dom 渲染完毕后的回调
     methods?:any  // 方法
     data?:Function  // 数据
+    watch?:any  // 监听
 }
 
 // 虚拟dom 属性

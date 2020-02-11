@@ -9,19 +9,14 @@ const Todo = ERer.component('todoList',{
                     $ref='input'
                     value={ this.text } 
                     oninput={(e)=>{
-                        let text = e.target.value
-                        this.setState({
-                            text:text,
-                        })
+                        this.text = e.target.value
                     }}
                     onkeypress={e=>this.enter(e)}
                 />
                 <div class="add" onclick={()=>this.addItem()}>添加</div>
             </div>
             <div onclick={()=>{
-                this.setState({
-                    show:!this.show
-                })
+                this.show = !this.show
             }}
             >
                 看我
@@ -38,9 +33,9 @@ const Todo = ERer.component('todoList',{
                         return <Item 
                             text={str} 
                             $change={(val)=>this.changeItem(val,i)} 
-                            $dragstart={()=>this.setState({dragIndex:i})}
+                            $dragstart={()=>this.dragIndex = i}
                             $dragenter={()=>this.handleEnter(i)}
-                            $dragend={()=>this.setState({dragIndex:''})}
+                            $dragend={()=>this.dragIndex = ''}
                             key={str}>
                         </Item>
                     })
@@ -74,11 +69,12 @@ const Todo = ERer.component('todoList',{
         addItem(){
             let text = this.text;
             this.loadingList.push(text)
-            this.setState({
-                text:'',
-                loadingList:[...this.loadingList],
-            })
-            console.log(this.loadingList)
+            this.text = ''
+            // this.setState({
+            //     text:'',
+            //     loadingList:[...this.loadingList],
+            // })
+            // console.log(this.loadingList)
         },
         changeItem(finishFlag,index){
             // console.log('changeItem',finishFlag,index)
@@ -94,11 +90,11 @@ const Todo = ERer.component('todoList',{
                 let item = this.loadingList.splice(index,1)
                 this.finishList.unshift(item[0])
             }
-            this.setState({
-                loadingList:[...this.loadingList],
-                finishList:[...this.finishList],
-            })
-            console.log(this.loadingList)
+            // this.setState({
+            //     loadingList:[...this.loadingList],
+            //     finishList:[...this.finishList],
+            // })
+            // console.log(this.loadingList)
         },
         enter(e){
             if(e.keyCode === 13){
@@ -113,10 +109,11 @@ const Todo = ERer.component('todoList',{
             let value = this.loadingList[this.dragIndex];
             this.loadingList[this.dragIndex] = this.loadingList[index];
             this.loadingList[index] = value;
-            this.setState({
-                loadingList: [...this.loadingList],
-                dragIndex: index,
-            })
+            this.dragIndex = index;
+            // this.setState({
+            //     loadingList: [...this.loadingList],
+            //     dragIndex: index,
+            // })
         },
     }
 })

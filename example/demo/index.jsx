@@ -20,6 +20,7 @@ ERer.render(
         { undefined }
         { div }
         <Todo></Todo>
+        <App></App>
     </div>,
     document.getElementById('root')
 )

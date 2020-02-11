@@ -6,6 +6,15 @@ export default ERer.component('hello',{
             text:'你猜猜'
         }
     },
+    watch:{
+        value(num){
+            if(num > 100){
+                setTimeout(()=>{
+                    this.value = 90
+                },2000)
+            }
+        }
+    },
     created(){
         console.log('created',this.props)
         console.log(this)
@@ -13,12 +22,13 @@ export default ERer.component('hello',{
     mounted(){
         console.log('mounted')
         setTimeout(()=>{
-            this.setState({
-                text:'aha'
-            })
+            this.text = 'aha';
         },2000)
     },
     render(){
+        if(this.value > 100){
+            return null
+        }
         return (<div>
             <div class="text" onclick={()=>this.add()}>
                 <div class="text">
@@ -30,10 +40,7 @@ export default ERer.component('hello',{
     },
     methods:{
         add(){
-            let val = this.value + 1;
-            this.setState({
-                value:val
-            })
+            this.value++;
         }
     }
 })

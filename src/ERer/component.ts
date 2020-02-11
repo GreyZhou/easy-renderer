@@ -4,6 +4,7 @@ import transElement from './transElement'
 import Observer from '../utils/observer'
 import diff from './diff'
 import patch from './patch'
+import Watcher from '../utils/watcher'
 
 // 空节点
 class NullNode {
@@ -25,6 +26,7 @@ class TagNode {
 // 组件原始类
 class ERerComponentBase {
     public event:Observer  // 内部事件对象
+    public watch:any = {} // 监听合集
     public methods:any = {}  // 方法合集
     public $slots:vnode[]   // slots 合集
     public props:any = {}   // 传参
@@ -116,8 +118,7 @@ class ERerComponentBase {
         // }
     }
     // 更新data
-    setState(nextState){
-        let flag = false;
+    setState(nextState){        
         Object.keys(nextState).forEach(key=>{
             // if(typeof this[key] === 'object' || this[key] instanceof Array ){
             //     if( JSON.stringify(this[key]) !== JSON.stringify(nextState[key]) ){
@@ -127,14 +128,10 @@ class ERerComponentBase {
             // }
             // else 
             if(this[key] !== nextState[key]){
-                console.log(key,nextState[key])
-                flag = true;
                 this[key] = nextState[key]
             }
         })
-        if( flag ){
-            update.updateComponent( this )
-        }
+        update.updateComponent( this )
     }
 }
 
@@ -150,6 +147,7 @@ const ERerFactory = (function(){
                 // Object.assign(this,this.state);
                 Object.assign(this,this.data());
                 this.methods = options.methods || {};
+                this.watch = options.watch || {};
                 Object.assign(this,this.methods)  // 合并 method 方法
                 this.$slots = children;    // 塞入 slot
                 this.props = {}
@@ -157,6 +155,20 @@ const ERerFactory = (function(){
                 Object.keys(props).forEach(key=>{
                     this.multiProps(key, props[key])
                 })
+                // 监听
+                let watcher = new Watcher(this,{lazy:true})
+                for(let name in this.data()){
+                    watcher.$watch(name,(val)=>{
+                        this.setState({
+                            [name]:val
+                        })
+                        if(this.watch[name]){
+                            let func = this.watch[name].bind(this)
+                            func(val)
+                        }
+                    })
+                }
+
                 this.created()
                 renderComponent( this )
                 this.mounted();
