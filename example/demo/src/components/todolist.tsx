@@ -6,7 +6,7 @@ const Todo = ERer.component('todoList',{
         return <div className="todo-wrap">
             <div className="todo-input">
                 <input 
-                    $ref='input'
+                    ref='input'
                     value={ this.text } 
                     oninput={(e)=>{
                         this.text = e.target.value
@@ -15,15 +15,17 @@ const Todo = ERer.component('todoList',{
                 />
                 <div class="add" onclick={()=>this.addItem()}>添加</div>
             </div>
-            <div onclick={()=>{
+            <div $-test onclick={()=>{
                 this.show = !this.show
+                console.log(this.show)
             }}
             >
                 看我
             </div>
-            <Test show={ this.show }></Test>
-            <div class="loading">
-                <div class="title">待完成列表<span class='num'>{ this.loadingList.length }</span></div>
+            <Test $-show={ !this.show } ref='test'>454545</Test>
+            <Test $-if={ !this.show } ref='test2'>6666</Test>
+            <div $-if={ this.show } class="loading" ref='loading-wrap'>
+                <div ref='wait' class="title">待完成列表<span class='num'>{ this.loadingList.length }</span></div>
                 {
                     this.loadingList.map((str,i)=>{
                         console.log(str,i)
@@ -63,6 +65,9 @@ const Todo = ERer.component('todoList',{
             loadingList:[],
             finishList:[],
         }
+    },
+
+    mounted(){
     },
     
     methods:{
@@ -120,22 +125,22 @@ const Todo = ERer.component('todoList',{
 
 const Item = ERer.component('todoItem',{
     render(){
-        let checkClass = this.props.check?'active':''
-        console.log('获取模板： todoItem',this.props)
+        let checkClass = this.$props.check?'active':''
+        console.log('获取模板： todoItem',this.$props)
         return <div class={`todo-item ${checkClass}`}
             draggable
             ondragstart={()=>this.$emit('dragstart')}
             ondragenter={()=>this.$emit('dragenter')}
             ondragend={()=>this.$emit('dragend')}>
             <div class={`check-box ${checkClass}`} onclick={()=>this.change()}></div>
-            <div class='text'>{ this.props.text }</div>
+            <div class='text'>{ this.$props.text }</div>
             <div class='remove'></div>
         </div>
     },
 
     methods:{
         change(){
-            let val = !this.props.check
+            let val = !this.$props.check
             this.$emit('change',val)
         }
     }
@@ -144,11 +149,20 @@ const Item = ERer.component('todoItem',{
 const Test = ERer.component('Test',{
     render(){
         console.log('test 模板')
-        let val = this.props.show
+        // let val = this.$props.show
+        let val = true
         return val 
             ? <div>hello</div>
             : ""
-    }
+    },
+    mounted(){
+        console.log('parent: ',this.$parent)
+    },
+    methods:{
+        hello(){
+            console.log('hello')
+        }
+    },
 })
 
 export default Todo

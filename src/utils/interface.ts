@@ -9,15 +9,24 @@ interface componentOptions {
     watch?:any  // 监听
 }
 
+// 组件数据更新
+interface updateOPtions {
+    props:any;   // 组件的传参
+    children:Array<vnode>;  // slots
+}
+
 // 虚拟dom 属性
 interface vnode {
     type:string | Function | null // tag 名称或者组件构造函数
     key:number | string   // key
+    ref:string
+    directive?:any;  // 指令合集
     props:any        // 属性等配置
     children?:Array<vnode>  // 子元素
     instance:any  // 组件实例
     dom: Node  // dom 引用
     _mountIndex?: number; // move计算时使用
+    _parent?: vnode;   // 父级引用
     // text?: string  // 文本值
 }
 

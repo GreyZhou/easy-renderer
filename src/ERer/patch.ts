@@ -55,7 +55,7 @@ const applyPatches = function( patch:patchOptions ){
         case DIFF_TYPE.ATTRS:  //  属性变化
             let attrs = patch.attrs;
             Object.keys(attrs).forEach(key=>{
-                setAttrs(dom,key,attrs[key])
+                setAttrs(patch.newVnode,key,attrs[key])
             })
             break;
 
@@ -108,23 +108,23 @@ const applyPatches = function( patch:patchOptions ){
 // }
 
 // 指定位置插入dom
-const insertDom = function(parentDom:HTMLElement, insertDom:Node, index:number){
+const insertDom = function(parentDom:HTMLElement, insert_dom:Node, index:number){
     let nodes_arr = parentDom.childNodes;
     let len = nodes_arr.length;
     if( (len == 0 && index == 0) || (index == len) ){
-        parentDom.appendChild(insertDom)
+        parentDom.appendChild(insert_dom)
     }else{
         let afterDom = nodes_arr[index]
-        parentDom.insertBefore(insertDom,afterDom)
+        parentDom.insertBefore(insert_dom,afterDom)
     }
 }
 
-const insertAfter = function(parentDom:HTMLElement, insertDom:Node, beforeDom:Node){
+const insertAfter = function(parentDom:HTMLElement, insert_dom:Node, beforeDom:Node){
     if(!beforeDom){
-        parentDom.appendChild(insertDom)        
+        parentDom.appendChild(insert_dom)        
     }else{
         let afterDom = beforeDom.nextSibling;
-        parentDom.insertBefore(insertDom,afterDom)
+        parentDom.insertBefore(insert_dom,afterDom)
     }
 }
 export default patch

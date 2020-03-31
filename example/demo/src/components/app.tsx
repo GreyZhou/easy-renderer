@@ -1,5 +1,5 @@
 import ERer from '../ERer.js'
-export default ERer.component('hello',{
+export default ERer.component('hello', {
     data(){
         return {
             value:90,
@@ -16,7 +16,7 @@ export default ERer.component('hello',{
         }
     },
     created(){
-        console.log('created',this.props)
+        console.log('created',this.$props)
         console.log(this)
     },
     mounted(){
@@ -44,4 +44,3 @@ export default ERer.component('hello',{
         }
     }
 })
-

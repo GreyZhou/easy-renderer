@@ -5,6 +5,9 @@ import Observer from '../utils/observer'
 import diff from './diff'
 import patch from './patch'
 import Watcher from '../utils/watcher'
+import { dealDirective } from './directive'
+import { DIRECTIVE_CYCLE } from './const'
+
 
 // 空节点
 class NullNode {
@@ -29,7 +32,10 @@ class ERerComponentBase {
     public watch:any = {} // 监听合集
     public methods:any = {}  // 方法合集
     public $slots:vnode[]   // slots 合集
-    public props:any = {}   // 传参
+    public $componentName:string   // 组件名称
+    public $props:any = {}   // 传参
+    public $refs:any = {}   // dom 或 组件实体
+    public $parent:ERerComponentBase = null// 父组件
     // public state:any = {}   // 数据
     public $el:HTMLElement;  // 渲染后的 dom
     public destroyed_flag:boolean; // 已销毁标识
@@ -77,10 +83,11 @@ class ERerComponentBase {
             this.event.listen(name,value)
             // console.log(this.event)
         }else{
-            this.props[key] = value
+            this.$props[key] = value
         }
     }
-    setProps( props = {}, children ){
+    setProps( config:updateOPtions ){
+        let { props, children } = config;
         // console.log(props)
         // console.log(this.props)
         let filter_props = Object.keys(props).reduce((res,key)=>{
@@ -91,9 +98,9 @@ class ERerComponentBase {
             return res
         },props)
 
-        if( 
+        if(
             // !Object.keys(props).some(key=>typeof props[key] === 'function') &&
-            JSON.stringify(filter_props) === JSON.stringify(this.props) &&
+            JSON.stringify(filter_props) === JSON.stringify(this.$props) &&
             JSON.stringify(children) === JSON.stringify(this.$slots)
         ){
             return;
@@ -118,7 +125,7 @@ class ERerComponentBase {
         // }
     }
     // 更新data
-    setState(nextState){        
+    $setState(nextState){        
         Object.keys(nextState).forEach(key=>{
             // if(typeof this[key] === 'object' || this[key] instanceof Array ){
             //     if( JSON.stringify(this[key]) !== JSON.stringify(nextState[key]) ){
@@ -141,16 +148,20 @@ const ERerFactory = (function(){
     return function(options:componentOptions){
         class ERerComponent extends  ERerComponentBase {
             private name:string = options.name; // 组件名称
-            constructor(props, children){
+            private _note_ref_vnodes:vnode[] = [];  // 临时记录ref vnode数组
+            constructor(config){
                 super()
+                let { props, children, parent = null } = config
                 // Object.assign(this.state,this.data())  // 合并 data 数据
                 // Object.assign(this,this.state);
                 Object.assign(this,this.data());
+                this.$componentName = options.name;
                 this.methods = options.methods || {};
                 this.watch = options.watch || {};
                 Object.assign(this,this.methods)  // 合并 method 方法
                 this.$slots = children;    // 塞入 slot
-                this.props = {}
+                this.$parent = parent;  // 指定父组件
+                this.$props = {}
                 // 拆分属性及事件
                 Object.keys(props).forEach(key=>{
                     this.multiProps(key, props[key])
@@ -159,7 +170,7 @@ const ERerFactory = (function(){
                 let watcher = new Watcher(this,{lazy:true})
                 for(let name in this.data()){
                     watcher.$watch(name,(val)=>{
-                        this.setState({
+                        this.$setState({
                             [name]:val
                         })
                         if(this.watch[name]){
@@ -174,8 +185,11 @@ const ERerFactory = (function(){
                 this.mounted();
             }
     
-            render(){
-                return options.render && options.render.call(this,createElement);
+            render(firstFlag = false){
+                let vnode = options.render && (options.render.call(this,createElement) || createElement(null))
+                // ref 记录
+                this._note_ref_vnodes = this._deepVnodes(vnode,{first:firstFlag});
+                return vnode;
             }
             data(){
                 return options.data && options.data.call(this);
@@ -184,7 +198,38 @@ const ERerFactory = (function(){
                 return options.created && options.created.call(this);
             }
             mounted(){
+                this.$refs = this._note_ref_vnodes.reduce((res,noteVnode)=>{
+                    res[noteVnode.ref] = typeof noteVnode.type === 'function'
+                        ? noteVnode.instance  // 组件
+                        : noteVnode.dom  // 原生dom 
+                    return res
+                },{})
                 return options.mounted && options.mounted.call(this);
+            }
+
+            // 递归虚拟 dom 树, 进行一些处理，同时返回标记 ref 的 vnode 合集
+            private _deepVnodes(vnode, options ){
+                let { refs = [], parent = null, first } = options
+
+                if(vnode.ref){
+                    refs.push(vnode)
+                }
+
+                if( first ){
+                    // 初次渲染，执行 bind 钩子
+                    dealDirective(vnode, DIRECTIVE_CYCLE.BIND)
+                }
+
+                if(vnode.children){
+                    for(let child of vnode.children){
+                        this._deepVnodes(child, {
+                            refs,
+                            parent,
+                            first
+                        })
+                    }
+                }
+                return refs
             }
         }
     
@@ -226,7 +271,7 @@ const ERerFactory = (function(){
         //     }
         // }
         // // 更新data
-        // ERerComponent.prototype.setState = function(obj){
+        // ERerComponent.prototype.$setState = function(obj){
         //     Object.assign(this,obj) // 更新数据
         //     renderComponent( this );
         // }
@@ -242,9 +287,9 @@ export const isComponent = function(vnode:vnode){
 
 // 渲染组件
 const renderComponent = function( component ){
-    const vnode = component.render();  // 获取虚拟 dom   
-    console.log('--renderComponent--',vnode)
-    let $el = transElement( vnode );
+    const vnode = component.render(true)  // 初次渲染 获取虚拟 dom   
+    // console.log('--renderComponent--',vnode)
+    let $el = transElement( vnode, {parentInstance:component,signName:'inserted'});
     component.$el = $el;  // 真实 dom
     component.preVnodeTree = vnode; // 保存虚拟树，下次比对
 }
@@ -260,20 +305,20 @@ const update = {
         this.dirtyComponents.push(component)
         if( this.start === false ){
             requestAnimationFrame(()=>{
-                console.time('update')
+                // console.time('update')
                 while(this.dirtyComponents.length !== 0){
                     let now_component = this.dirtyComponents.shift();
                     let vnode = now_component.render();
-                    if(!vnode){
-                        vnode = createElement(vnode)
-                    }
+                    // if(!vnode){
+                    //     vnode = createElement(vnode)
+                    // }
                     let patches = diff(now_component.preVnodeTree, vnode, now_component.moved)
-                    console.log('update',now_component.name,patches)
+                    // console.log('update',now_component.name,patches)
                     now_component.preVnodeTree = vnode
                     patch( now_component.preVnodeTree, patches )
                     now_component.dirty_flag = false;
                 }
-                console.timeEnd('update')
+                // console.timeEnd('update')
 
                 // this.dirtyComponents.forEach(component=>{
                 //     let vnode = component.render();
@@ -298,6 +343,6 @@ export const component = function(name,options:componentOptions){
 }
 
 // 实例化组件
-export const createComponent = function(componentFunc,props?){
-    return new componentFunc(props)
+export const createComponent = function(componentFunc, config){
+    return new componentFunc(config)
 }

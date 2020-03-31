@@ -6,16 +6,17 @@ export const RESERVED_PROPS = {
     preVnodeTree:true,
     $emit:true,
     $slots:true,
+    ref:true,
     event:true,
 }
 
 // 特别属性
 export const SPECIAL_PROPS = {
-    $if:true,
-    $ref:true,
-    $show:true,
-    $model:true,
-    children:true,
+    "$-if":true,
+    '$-show':true,
+    "ref":true,
+    // $model:true,
+    // children:true,
 }
 
 // diff type
@@ -26,4 +27,11 @@ export const DIFF_TYPE = {
     REPLACE : 'REPLACE',  //替换操作
     ADD : 'ADD',  // 创建操作
     MOVETO : 'MOVETO',  // 移动操作
+}
+
+// directive cycle
+export const DIRECTIVE_CYCLE = {
+    BIND: 'bind',
+    INSERTED: 'inserted',
+    UPDATE: 'update',
 }

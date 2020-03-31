@@ -13,6 +13,14 @@ import './src/scss/index.scss'
 //     }
 // }
 
+
+ERer.directive('test',{
+    inserted(...arg){
+        console.log(arg)
+        console.log(this)
+    }
+})
+
 let div = document.createElement('div')
 ERer.render(
     <div class='todo-list-app'>
@@ -24,3 +32,4 @@ ERer.render(
     </div>,
     document.getElementById('root')
 )
+

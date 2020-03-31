@@ -1,13 +1,15 @@
 
-import { DIFF_TYPE } from './const'
+import { DIFF_TYPE, DIRECTIVE_CYCLE } from './const'
 import { isComponent } from './component'
+import { dealDirective } from './directive'
+
 
 // diff 主入口
 const diff = function(oldTree:vnode, newTree:vnode, moved:boolean):patchOptions[] {
     let patches:patchOptions[] = [];
-    console.log('--- diff ---')
-    console.log(oldTree,newTree)
-    console.log('--------')
+    // console.log('--- diff ---')
+    // console.log(oldTree,newTree)
+    // console.log('--------')
     // 递归树， 比较后的结果放到补丁包中
     walk(oldTree, newTree, patches, moved)
     return patches;
@@ -34,6 +36,10 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[], moved:bool
     //     })
     //     return newVnode
     // }
+
+    // 数据更新 执行 update 钩子
+    dealDirective(newVnode, DIRECTIVE_CYCLE.UPDATE, oldVnode)
+
     if( oldVnode.type === 'string' && newVnode.type === 'string' ){  // 文本
         if(oldVnode.props.text !== newVnode.props.text){
             currentPatch.push({
@@ -59,7 +65,10 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[], moved:bool
     else{   // 节点类型相同
         if( isComponent(oldVnode as vnode) ){
             let instance = newVnode.instance;
-            instance.setProps(newVnode.props,newVnode.children)
+            instance.setProps({
+                props: newVnode.props, 
+                children: newVnode.children,
+            })
             instance.moved = moved;
         }else{
             // 比较属性是否有更改
@@ -69,10 +78,11 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[], moved:bool
                     type: DIFF_TYPE.ATTRS,
                     dom: oldVnode.dom,
                     attrs: attrs,
-                    // newVnode: newVnode,
+                    newVnode: newVnode,
                     // parentVnode: parentVnode,
                 });
             }
+            
             // 比较儿子们
             diffChildren2(oldVnode.children, newVnode.children, patches, oldVnode);
         }

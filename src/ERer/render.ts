@@ -1,10 +1,6 @@
 import '../utils/interface'
-import { createComponent } from './component'
 import transElement from './transElement'
-import diff from './diff'
-import patch from './patch'
-import {RESERVED_PROPS,SPECIAL_PROPS } from './const'
- 
+import {RESERVED_PROPS,SPECIAL_PROPS } from './const' 
 
 const requestAnimationFrame = function(method){
     if(window.requestAnimationFrame){
@@ -18,33 +14,45 @@ const requestAnimationFrame = function(method){
 // jsx --> vnode
 export const createElement = function(type, config?, ...children){
     children = children.length ? [].concat(...children) : null;
-    const props:any = {};
-    let key = null;
+
+    let _config:any = {
+        props:{},
+    };
+
     if(!type){
         type = 'null';
     }
     if( config ){
         for (let propName in config) {
-            if (
+            if( /^\$-/.test(propName) ){
+                _config.directive = _config.directive || {}
+                let dir_key = propName.replace(/^\$-/,'')
+                _config.directive[dir_key] = config[propName]
+            }
+            else if (
                 config.hasOwnProperty(propName) &&
                 !RESERVED_PROPS.hasOwnProperty(propName)
             ) {
-                props[propName] = config[propName];
+                _config.props[propName] = config[propName];
             }
         }
-        key = config.key || null
+        config.key && (_config.key = config.key)
+        config.ref && (_config.ref = config.ref)
     }
-
-    return ERerElement( type, key, props, children )
+    // let _config = {
+    //     key,
+    //     ref,
+    //     props,
+    // }
+    return ERerElement( type, _config, children )
 }
 
-const ERerElement = function(type, key, props, children, dom = null){
+const ERerElement = function(type, _config, children, dom = null){
     let instance = null;
-
+    
     if(children){
         let indexCount = 0
         let cacheKeyMap = {}
-
         children = children.map( item => {
             if(typeof item !== 'object' || item instanceof HTMLElement ){
                 let child_type,child_dom = null
@@ -59,7 +67,7 @@ const ERerElement = function(type, key, props, children, dom = null){
                     child_dom = item
                 }
 
-                item = ERerElement( child_type, null, self_props, null, child_dom )
+                item = ERerElement( child_type, {props:self_props}, null, child_dom )
             }
 
             if(item.key === null || cacheKeyMap[item.key] ){
@@ -74,8 +82,7 @@ const ERerElement = function(type, key, props, children, dom = null){
 
     let res = {
         type,
-        key,
-        props,
+        ..._config,
         children,
         dom,
         instance,
