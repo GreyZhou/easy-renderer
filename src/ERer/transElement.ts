@@ -39,6 +39,12 @@ const transElement = function(vnode:vnode, config:transConfig = {}):Node{
     
     // 组件
     if(typeof vnode.type === 'function'){
+        // 提前创建 dom，便于后续patch
+        // let children = (vnode.children || []).map(child => {
+        //     child.dom = transElement(child, config)
+        //     return child
+        // });
+
         let component = createComponent(vnode.type, {
             props: vnode.props, 
             children: vnode.children, 
@@ -62,7 +68,7 @@ const transElement = function(vnode:vnode, config:transConfig = {}):Node{
         if ( vnode.children ) {
             // 递归调用render生成子节点
             vnode.children.forEach(child => {
-                node.appendChild(transElement(child, config))
+                vnode.dom.appendChild(transElement(child, config))
             });
         }
         dealDirective(vnode, config.signName)        

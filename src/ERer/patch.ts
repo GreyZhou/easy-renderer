@@ -49,7 +49,7 @@ const applyPatches = function( patch:patchOptions ){
             // parentVnode = patch.parentVnode;
             newDom = transElement(patch.newVnode)
             insertAfter(patch.parentDom, newDom, dom)
-            dom.parentNode.removeChild(dom)
+            dom && dom.parentNode && dom.parentNode.removeChild(dom)
             break;
 
         case DIFF_TYPE.ATTRS:  //  属性变化
@@ -112,19 +112,19 @@ const insertDom = function(parentDom:HTMLElement, insert_dom:Node, index:number)
     let nodes_arr = parentDom.childNodes;
     let len = nodes_arr.length;
     if( (len == 0 && index == 0) || (index == len) ){
-        parentDom.appendChild(insert_dom)
+        parentDom && parentDom.appendChild(insert_dom)
     }else{
         let afterDom = nodes_arr[index]
-        parentDom.insertBefore(insert_dom,afterDom)
+        parentDom && parentDom.insertBefore(insert_dom,afterDom)
     }
 }
 
 const insertAfter = function(parentDom:HTMLElement, insert_dom:Node, beforeDom:Node){
     if(!beforeDom){
-        parentDom.appendChild(insert_dom)        
+        parentDom && parentDom.appendChild(insert_dom)        
     }else{
         let afterDom = beforeDom.nextSibling;
-        parentDom.insertBefore(insert_dom,afterDom)
+        parentDom && parentDom.insertBefore(insert_dom,afterDom)
     }
 }
 export default patch

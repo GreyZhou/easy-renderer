@@ -198,12 +198,6 @@ const ERerFactory = (function(){
                 return options.created && options.created.call(this);
             }
             mounted(){
-                this.$refs = this._note_ref_vnodes.reduce((res,noteVnode)=>{
-                    res[noteVnode.ref] = typeof noteVnode.type === 'function'
-                        ? noteVnode.instance  // 组件
-                        : noteVnode.dom  // 原生dom 
-                    return res
-                },{})
                 return options.mounted && options.mounted.call(this);
             }
 
@@ -230,6 +224,17 @@ const ERerFactory = (function(){
                     }
                 }
                 return refs
+            }
+            
+            // 更新 refs
+            private freshRefs(){
+                // 更新 $refs
+                this.$refs = this._note_ref_vnodes.reduce((res,noteVnode)=>{
+                    res[noteVnode.ref] = typeof noteVnode.type === 'function'
+                        ? noteVnode.instance  // 组件
+                        : noteVnode.dom  // 原生dom 
+                    return res
+                },{})
             }
         }
     
@@ -292,6 +297,7 @@ const renderComponent = function( component ){
     let $el = transElement( vnode, {parentInstance:component,signName:'inserted'});
     component.$el = $el;  // 真实 dom
     component.preVnodeTree = vnode; // 保存虚拟树，下次比对
+    component.freshRefs()
 }
 
 // 更新对象
@@ -316,6 +322,8 @@ const update = {
                     // console.log('update',now_component.name,patches)
                     now_component.preVnodeTree = vnode
                     patch( now_component.preVnodeTree, patches )
+                    now_component.freshRefs()
+                    now_component.$parent && now_component.$parent.freshRefs();
                     now_component.dirty_flag = false;
                 }
                 // console.timeEnd('update')

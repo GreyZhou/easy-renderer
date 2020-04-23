@@ -55,7 +55,7 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[], moved:bool
         // 说明节点被替换
         currentPatch.push({
             type: DIFF_TYPE.REPLACE,
-            parentDom: oldVnode.dom.parentNode,
+            parentDom: oldVnode.dom && oldVnode.dom.parentNode,
             dom: oldVnode.dom,
             newVnode: newVnode,
             // parentVnode: parentVnode,
@@ -64,6 +64,9 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[], moved:bool
     }
     else{   // 节点类型相同
         if( isComponent(oldVnode as vnode) ){
+            // 比较儿子们
+            diffChildren(oldVnode.children, newVnode.children, patches, oldVnode);
+
             let instance = newVnode.instance;
             instance.setProps({
                 props: newVnode.props, 
@@ -84,24 +87,24 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[], moved:bool
             }
             
             // 比较儿子们
-            diffChildren2(oldVnode.children, newVnode.children, patches, oldVnode);
+            diffChildren(oldVnode.children, newVnode.children, patches, oldVnode);
         }
     }
 }
 
 // 比较子节点们
+// const diffChildren = function(oldList:vnode[],newList:vnode[],patches:patchOptions[],parentVnode:vnode){
+//     oldList = oldList || []
+//     newList = newList || []
+//     let maxLen = Math.max(oldList.length,newList.length)
+
+//     for(let i = 0;i<maxLen;i++){
+//         let oldChild = oldList[i]
+//         walk(oldChild, newList[i], patches, parentVnode);
+//     }
+// }
+
 const diffChildren = function(oldList:vnode[],newList:vnode[],patches:patchOptions[],parentVnode:vnode){
-    oldList = oldList || []
-    newList = newList || []
-    let maxLen = Math.max(oldList.length,newList.length)
-
-    for(let i = 0;i<maxLen;i++){
-        let oldChild = oldList[i]
-        walk(oldChild, newList[i], patches, parentVnode);
-    }
-}
-
-const diffChildren2 = function(oldList:vnode[],newList:vnode[],patches:patchOptions[],parentVnode:vnode){
     let nextIndex = 0,
         lastIndex = 0;
     // let addCache:any[] = [];  // 新增vnode 数据缓存
@@ -159,6 +162,7 @@ const diffChildren2 = function(oldList:vnode[],newList:vnode[],patches:patchOpti
             })
             // walk(null, newChild, patches, parentVnode, nextIndex)
         }else{
+            // 移动
             if(index < lastIndex){
                 patches.push({
                     type: DIFF_TYPE.MOVETO,
@@ -184,6 +188,7 @@ const diffChildren2 = function(oldList:vnode[],newList:vnode[],patches:patchOpti
         return arr
     },[...oldList])
     .forEach(item=>{
+        // 移除
         if( item !== null ){
             patches.push({
                 type: DIFF_TYPE.REMOVE,
