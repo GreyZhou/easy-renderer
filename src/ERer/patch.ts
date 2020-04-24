@@ -38,6 +38,7 @@ const applyPatches = function( patch:patchOptions ){
             break;
 
         case DIFF_TYPE.TEXT:  // 文本替换
+            if(!dom)return  // 多余的patch 导致 dom 可能为 null
             if (dom.textContent) {
                 dom.textContent = patch.newText
             } else {
