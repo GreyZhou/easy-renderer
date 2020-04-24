@@ -1,13 +1,13 @@
 {
   "name": "easy-renderer",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "类 vue 语法，用于 js 插件开发、页面开发的小型库，支持 JSX",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "eg": "parcel example/demo/index.html",
-    "dist": "parcel build index.js",
-    "dist2": "poi --prod --config poi.config.js"
+    "dist2": "parcel build index.js",
+    "dist": "poi --prod --config poi.config.js"
   },
   "repository": {
     "type": "git",

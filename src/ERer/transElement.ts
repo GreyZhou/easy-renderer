@@ -79,6 +79,7 @@ const transElement = function(vnode:vnode, config:transConfig = {}):Node{
 // 设置原生dom属性
 export const setAttrs = function(vnode, name, value){
     let dom = vnode.dom;
+    if(!dom)return // 多余的patch 导致 dom 可能为 null
     // 事件
     if ( typeof value === 'function' || /^on\w+/.test( name ) ) {
         // name = name.toLowerCase().replace(/^on/,'');
