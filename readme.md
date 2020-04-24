@@ -201,9 +201,14 @@ ERer.render(
 - [ ] 【需求】**框架** watch 不支持 "data.list" 这种形式
 - [ ] 【bug】**框架**  $-if 在列表渲染中失效
 - [ ] 【bug】**框架** 自定义指令，几个option周期有误。当 render 重新创建 dom 时，不能正确触发 bind，inserted
+- [ ] 【bug】**框架** 数据变动，渲染过于频繁，导致diff的结果和patch 无法对应。考虑合并渲染帧。
 - [ ] 【bug】**框架** 无法监听 $props 数据
 - [ ] 【bug】**框架** $-if ，$-show 等命令在 slot （插槽）内失效
 - [ ] 【bug】**框架** slot 
   - [x] 使用 ref 标记组件的 slot 时，外层无法使用 $refs 正确获取
   - [ ] 子组件未渲染，插槽内容变化，会导致无效的 patch
   - [x] patch DIFF_TYPE.TEXT: // 文本替换，报错
+  - [ ] 一个思路，在 diff 时，判断 dom 是否存在，dom.parent 是否存在。diff 应该仅针对实际已渲染 dom，进行实际意义上的比对
+
+
+
