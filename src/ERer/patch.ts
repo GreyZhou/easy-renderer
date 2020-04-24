@@ -27,6 +27,7 @@ const applyPatches = function( patch:patchOptions ){
     let parentVnode,beforeVnode,newDom
     switch (patch.type) {
         case DIFF_TYPE.REMOVE:  // 移除
+            if(!dom)return  // 多余的patch 导致 dom 可能为 null
             patch.parentDom.removeChild(dom)
             break;
 
@@ -48,6 +49,7 @@ const applyPatches = function( patch:patchOptions ){
 
         case DIFF_TYPE.REPLACE:  // 节点替换
             // parentVnode = patch.parentVnode;
+            if(!dom)return  // 多余的patch 导致 dom 可能为 null
             newDom = transElement(patch.newVnode)
             insertAfter(patch.parentDom, newDom, dom)
             dom && dom.parentNode && dom.parentNode.removeChild(dom)

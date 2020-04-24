@@ -1,6 +1,6 @@
 {
   "name": "easy-renderer",
-  "version": "0.0.14",
+  "version": "0.0.16",
   "description": "类 vue 语法，用于 js 插件开发、页面开发的小型库，支持 JSX",
   "main": "dist/index.js",
   "scripts": {
