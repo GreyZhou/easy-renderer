@@ -5,7 +5,7 @@ import { dealDirective } from './directive'
 
 
 // diff 主入口
-const diff = function(oldTree:vnode, newTree:vnode, moved:boolean):patchOptions[] {
+const diff = function(oldTree:vnode, newTree:vnode, moved?:boolean):patchOptions[] {
     let patches:patchOptions[] = [];
     // console.log('--- diff ---')
     // console.log(oldTree,newTree)
@@ -19,7 +19,7 @@ const diff = function(oldTree:vnode, newTree:vnode, moved:boolean):patchOptions[
 function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[], moved:boolean = false) {
     // let currentPatch:patchOptions[] = [];
     let currentPatch:patchOptions[] = patches;
-    
+    // console.log(oldVnode, newVnode)
     newVnode.instance = oldVnode.instance
     newVnode.dom = oldVnode.dom
     // if( oldVnode && !newVnode ){  // 移除
@@ -52,6 +52,8 @@ function walk(oldVnode:vnode, newVnode:vnode, patches:patchOptions[], moved:bool
         }
     }
     else if ( oldVnode.type !== newVnode.type ) {  // 节点类型不同
+        newVnode.instance = null
+        newVnode.dom = null
         // 说明节点被替换
         currentPatch.push({
             type: DIFF_TYPE.REPLACE,
@@ -216,7 +218,7 @@ const diffAttr = function( oldProps, newProps, moved = false ){
         // }else if( oldProps[key] !== value  || typeof oldProps[key] == 'function'){
         //     changeAttrs[key] = value
         // }    
-        if(typeof oldProps[key] == 'function' && moved){
+        if(typeof oldProps[key] == 'function'){
             changeAttrs[key] = value
         }else if( JSON.stringify(oldProps[key]) !== JSON.stringify(value) ){
             changeAttrs[key] = value

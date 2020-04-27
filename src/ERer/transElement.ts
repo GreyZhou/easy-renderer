@@ -40,10 +40,10 @@ const transElement = function(vnode:vnode, config:transConfig = {}):Node{
     // 组件
     if(typeof vnode.type === 'function'){
         // 提前创建 dom，便于后续patch
-        // let children = (vnode.children || []).map(child => {
-        //     child.dom = transElement(child, config)
-        //     return child
-        // });
+        let children = (vnode.children || []).map(child => {
+            child.dom = transElement(child, config)
+            return child
+        });
 
         let component = createComponent(vnode.type, {
             props: vnode.props, 

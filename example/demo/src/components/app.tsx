@@ -27,11 +27,12 @@ export default ERer.component('hello', {
         console.log('mounted')
         console.log(this.$refs)
         setTimeout(()=>{
-            this.text = 'aha';
-            this.text_show = true
+            // this.text_show = true
+            this.text = 'aha'
         },2000)
     },
     render(){
+        console.log('hello 模板渲染')
         if(this.value > 100){
             return null
         }
@@ -44,7 +45,7 @@ export default ERer.component('hello', {
             </div>
             
             <button onclick={()=>this.show_flag = true}>弹窗</button>
-            <Poper show={ this.show_flag }>
+            <Poper show={ this.show_flag } $change={val=>this.handle(val)}>
                 <div $-if={ this.text_show }>哈哈哈</div>
                 <select ref='select' onchange={(e)=>this.change(e)}>
                     <option value ="all">通讯录</option>
@@ -63,6 +64,11 @@ export default ERer.component('hello', {
             console.log(e.target, e.target.value)
             // this.$refs['select'].value = e.target.value
             console.log(this.$refs['select'], this.$refs['select'].value)
+        },
+        handle(val){
+            if(val){
+                this.text = 'aha';
+            }
         }
     }
 })

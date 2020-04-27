@@ -75,6 +75,7 @@
 - $refs                             同 vue，标记的实例集合
 - $slots                           组件标签间的 vnode 合集
 - $parent                        父级组件
+- $children                     子组件合集数组
 - $setState                   【function】(obj)  手动修改 data
 - $emit                         【function】(name, ...value)  触发指定事件
 
